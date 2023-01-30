@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
-const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -38,11 +37,5 @@ userSchema.plugin(uniqueValidator, {
   message: "is already taken",
 });
 
-//create JWT.
-userSchema.methods.getJWTtoken = () => {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
-};
 
 module.exports = mongoose.model("user", userSchema);
