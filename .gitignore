@@ -1,4 +1,4 @@
-# Logs
+	# Logs
 logs
 *.log
 npm-debug.log*
@@ -71,7 +71,7 @@ typings/
 # dotenv environment variables file
 .env
 .env.test
-config.env
+backend/config/config.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

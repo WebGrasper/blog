@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
+const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -36,6 +37,15 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(uniqueValidator, {
   message: "is already taken",
 });
+
+
+
+userSchema.methods.getresetPasswordToken = function(){
+  let resetToken = crypto.randomBytes(32).toString("hex");
+  this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  return resetToken;
+}
 
 
 module.exports = mongoose.model("user", userSchema);
