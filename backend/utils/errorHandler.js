@@ -1,21 +1,10 @@
-module.exports.success = (res,statusCode,flag,message)=>{
-    if (typeof message === "string") {
-        res.status(statusCode).json({
-            success: flag,
-            message:message
-        })
-    } else if(typeof message === "object"){
-        res.status(statusCode).json({
-            success: flag,
-            message
-        })
-        // console.log(message[1]._id.toString());
+class ErrorHandler extends Error{
+    constructor(statusCode,message){
+        super(message);
+        this.statusCode = statusCode;
+        this.isOperational = true;
+        Error.captureStackTrace(this, this.constructor);
     }
 }
 
-module.exports.failure = (res,statusCode,flag,message)=>{
-    res.status(statusCode).json({
-        success: flag,
-        message:message
-    })
-}
+module.exports = ErrorHandler;

@@ -14,14 +14,14 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     required: [true, "Can't be blank"],
-    match: [/\S+@\S+\.\S+/, "is invalid"],
+    match: [/\S+@\S+\.\S+/, "Invalid email"],
   },
   image: String,
   password: {
     type: String,
     required: true,
     match: [
-      /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[@$!%*?&]).{8,}$/,
+      /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z]{8}$/,
       "The password should be minimum of 8 characters, which consist atleast one Upper, one Lower case alphabet, one number and one special character.",
     ],
   },

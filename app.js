@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const database = require("./backend/config/db.js");
 const userRoute = require("../blog/backend/Routes/userRoute");
+const articleRoute = require("../blog/backend/Routes/articleRoute");
+const error = require("../blog/backend/Middlewares/error");
 
 const app = express();
 const port = 3000 || process.env.PORT;
@@ -23,6 +25,20 @@ database();
 
 //Using router.
 app.use('/app/v1',userRoute);
+app.use('/app/v2/',articleRoute);
+
+//Handling error when user request for invalid route.
+app.all('*',(req,res)=>{
+  let statusCode = err.statusCode || 500;
+  return res.status(statusCode).json({
+    success: false,
+    message: `Requested URL ${req.path} not found!`,
+    stack: err.stack,
+  });
+});
+
+//NodeJS uncaught error handler.
+app.use(error);
 
 app.listen(port, () => {
   console.log(`Server is working on ${port}`);
