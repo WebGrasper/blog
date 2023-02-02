@@ -5,11 +5,11 @@ const sendToken = require("../utils/jwtToken");
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail");
 
-module.exports.signup = async (req, res,next) => {
+module.exports.signup = async (req, res, next) => {
     //Checking if requesting user is already exists via email.
     const user = await userModel.findOne({ email: req.body.email });
     if (user) {
-        return next(new ErrorHandler(302,"User already exist!"));
+        return next(new ErrorHandler(302, "User already exist!"));
 
     } else {
         let { username, email, password } = req.body;
@@ -25,12 +25,12 @@ module.exports.signup = async (req, res,next) => {
                 password,
             });
             res.status(201).json({
-                success:true,
-                message:"Saved user successfully",
+                success: true,
+                message: "Saved user successfully",
             })
         } catch (error) {
             console.log(error);
-            return next(new ErrorHandler(302,`${error.errors.username || error.errors.password || error.errors.email}`));
+            return next(new ErrorHandler(302, `${error.errors.username || error.errors.password || error.errors.email}`));
         }
     }
 };
@@ -43,10 +43,10 @@ module.exports.signin = async (req, res, next) => {
         if (isPassword) {
             sendToken(user, 200, res, "Login Successfully");
         } else {
-            return next(new ErrorHandler(401,`Invalid login details!`));
+            return next(new ErrorHandler(401, `Invalid login details!`));
         }
     } else {
-        return next(new ErrorHandler(401,`Invalid login details!`));
+        return next(new ErrorHandler(401, `Invalid login details!`));
     }
 };
 
@@ -64,7 +64,7 @@ module.exports.logout = async (req, res, next) => {
 module.exports.getAllUserDetails = async (req, res, next) => {
     const user = await userModel.find();
     res.status(200).json({
-        success:true,
+        success: true,
         user,
     })
 };
@@ -73,11 +73,11 @@ module.exports.getAllUserDetails = async (req, res, next) => {
 module.exports.getSingleUserDetails = async (req, res, next) => {
     let user = await userModel.findById(req.params.id);
     if (!user) {
-        return next(new ErrorHandler(404,"The user not found!"));
+        return next(new ErrorHandler(404, "The user not found!"));
     }
     res.status(201).json({
-        success:true,
-        message:"Saved user successfully",
+        success: true,
+        message: "Saved user successfully",
     })
 }
 
@@ -85,22 +85,58 @@ module.exports.getSingleUserDetails = async (req, res, next) => {
 module.exports.getMyDetails = async (req, res, next) => {
     let user = await userModel.findById(req.user.id);
     res.status(201).json({
-        success:true,
-        message:"Saved user successfully",
+        success: true,
+        message: "Saved user successfully",
     })
 }
+
+module.exports.updateMyDetails = async (req, res, next) => {
+    await userModel.findByIdAndUpdate(req.user.id, req.body, { new: true, runValidators: true }).then((article) => {
+        console.log(article);
+        res.status(200).json({
+            success: true,
+            message: "Update user details successfully!",
+        })
+    }).catch((err) => {
+        return next(new ErrorHandler(302, `${err.errors.username || err.errors.email}`));
+
+    })
+}
+
+// module.exports.updateImage = async(req,res,next)=>{
+//     if(req.body.image === "delete"){
+//         await userModel.findOneAndUpdate(req.user.id,{image: undefined}, { new: true}).then((image)=>{
+//             console.log(image);
+//             res.status(200).json({
+//                 success: true,
+//                 message: "Image delete successfully!",
+//             })
+//         }).catch((err)=>{
+//             return next(new ErrorHandler(302, `Image cannot delete!`));
+//         })
+//     }
+//     await userModel.findOneAndUpdate(req.user.id, {image: req.body.image}, { new: true}).then((image)=>{
+//         console.log(image);
+//         res.status(200).json({
+//             success: true,
+//             message: "Image change successfully!",
+//         })
+//     }).catch((err)=>{
+//         return next(new ErrorHandler(302, `Image cannot change!`));
+//     })
+// }
 
 //Updating password using old-password.
 module.exports.updatePassword = async (req, res, next) => {
     let { oldPassword, newPassword, confirmPassword } = req.body;
     if (newPassword !== confirmPassword || (oldPassword === undefined || newPassword === undefined || confirmPassword === undefined)) {
-        return next(new ErrorHandler(401,"Please fill the fields properly!"));
+        return next(new ErrorHandler(401, "Please fill the fields properly!"));
     }
     let storedPassword = await bcryptjs.compare(oldPassword, req.user.password);
     if (!storedPassword) {
         return next(new ErrorHandler(401, "old password not matched!"));
     }
-    let user = await userModel.findByIdAndUpdate(req.user.id, {
+    let user = await userModel.findByIdAndUpdate(req.user.id, { new: true, runValidators: true }, {
         password: await bcryptjs.hash(newPassword, 12),
     })
     if (!user) {
@@ -124,7 +160,7 @@ module.exports.forgetPassword = async (req, res, next) => {
     try {
         await sendEmail(data);
         res.status(200).json({
-            success:true,
+            success: true,
             message: `Email send successfully to ${user.email}`,
         })
     } catch (error) {
@@ -139,17 +175,17 @@ module.exports.resetPassword = async (req, res, next) => {
     let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
     let user = await userModel.findOne({ resetPasswordToken, resetPasswordExpire: { $gt: Date.now() }, });
     if (!user) {
-        return next(new ErrorHandler(401,  "The token is invalid or expired!"));
+        return next(new ErrorHandler(401, "The token is invalid or expired!"));
     }
     if (req.body.password !== req.body.confirmPassword) {
-        return next(new ErrorHandler(401,  "Both passwords are not matching each other, please try again!"));
+        return next(new ErrorHandler(401, "Both passwords are not matching each other, please try again!"));
     }
     user.password = await bcryptjs.hash(req.body.password, 12);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
     res.status(200).json({
-        success:true,
-        message:  "password changed successfully!",
+        success: true,
+        message: "password changed successfully!",
     })
 }

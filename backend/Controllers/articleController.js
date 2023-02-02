@@ -33,3 +33,27 @@ module.exports.getArticles = async(req,res,next)=>{
     })
 }
 
+module.exports.updateArticle = async(req,res,next)=>{
+    await articleModel.findByIdAndUpdate(req.params.id,req.body,{new: true, runValidators: true},).then(()=>{
+        res.status(200).json({
+            success: true,
+            message:"item update successfully",
+        })
+    }).catch((err)=>{
+        if (err.name === "CastError") {
+            return next(new ErrorHandler(302,`Resources not found!`));
+        }
+        return next(new ErrorHandler(302,`${err.errors.title || err.errors.description}`));
+    })
+}
+
+module.exports.deleteArticle = async(req,res,next)=>{
+    let articleDelete = await articleModel.findByIdAndRemove(req.params.id);
+    if(!articleDelete){
+        return next(new ErrorHandler(302,`Resources not found!`));
+    }
+    res.status(200).json({
+        success: true,
+        message:"item delete successfully",
+    })
+}

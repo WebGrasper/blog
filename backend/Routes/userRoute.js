@@ -1,5 +1,5 @@
 const express = require('express');
-const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword} = require("../Controllers/userControlller");
+const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateImage} = require("../Controllers/userControlller");
 const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
 
 //express router/
@@ -9,6 +9,8 @@ router.route('/signup').post(signup);
 router.route('/signin').post(signin);
 router.route('/logout').put(logout);
 router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
+router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
+// router.route('/updateImage').put(isAuthenticated, updateImage);
 router.route('/getSingleUserDetails/:id').get(isAuthenticated, getSingleUserDetails);
 router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);
