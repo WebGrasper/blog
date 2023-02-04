@@ -4,38 +4,34 @@ const userModel = require("../Models/userModel");
 const sendToken = require("../utils/jwtToken");
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail");
+const { uploadImagesViaImageKit } = require("../utils/imageKit");
+const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 
-module.exports.signup = async (req, res, next) => {
+
+module.exports.signup = catchAsyncError(async (req, res, next) => {
     //Checking if requesting user is already exists via email.
     const user = await userModel.findOne({ email: req.body.email });
     if (user) {
         return next(new ErrorHandler(302, "User already exist!"));
-
-    } else {
-        let { username, email, password } = req.body;
-
-        //Encryption for password.
-        password = await bcryptjs.hash(password, 12);
-
-        //registering a new user.
-        try {
-            await userModel.create({
-                username,
-                email,
-                password,
-            });
-            res.status(201).json({
-                success: true,
-                message: "Saved user successfully",
-            })
-        } catch (error) {
-            console.log(error);
-            return next(new ErrorHandler(302, `${error.errors.username || error.errors.password || error.errors.email}`));
-        }
     }
-};
+    let { username, email, password } = req.body;
+    //registering a new user.
+    await userModel.create({
+        username,
+        email,
+        password
+    });
 
-module.exports.signin = async (req, res, next) => {
+    //Encrypting and updating password when normal password successfully passes the mongoose matching parsing.
+    await userModel.findOneAndUpdate({ email: req.body.email }, { password: await bcryptjs.hash(password, 12) }, { new: true });
+
+    res.status(201).json({
+        success: true,
+        message: "Saved user successfully",
+    })
+});
+
+module.exports.signin = catchAsyncError(async (req, res, next) => {
     const { email, password } = req.body;
     let user = await userModel.findOne({ email: email });
     if (user) {
@@ -43,14 +39,14 @@ module.exports.signin = async (req, res, next) => {
         if (isPassword) {
             sendToken(user, 200, res, "Login Successfully");
         } else {
-            return next(new ErrorHandler(401, `Invalid login details!`));
+            return next(new ErrorHandler(401, `Invalid login details,password!`));
         }
     } else {
-        return next(new ErrorHandler(401, `Invalid login details!`));
+        return next(new ErrorHandler(401, `Invalid login details,email!`));
     }
-};
+});
 
-module.exports.logout = async (req, res, next) => {
+module.exports.logout = catchAsyncError(async (req, res, next) => {
     res.status(200).cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
@@ -58,19 +54,19 @@ module.exports.logout = async (req, res, next) => {
         success: true,
         message: "Logout successfully!",
     });
-};
+});
 
 //Getting all users details.
-module.exports.getAllUserDetails = async (req, res, next) => {
+module.exports.getAllUserDetails = catchAsyncError(async (req, res, next) => {
     const user = await userModel.find();
     res.status(200).json({
         success: true,
         user,
     })
-};
+});
 
 //Getting single user detail using ObjectID.
-module.exports.getSingleUserDetails = async (req, res, next) => {
+module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => {
     let user = await userModel.findById(req.params.id);
     if (!user) {
         return next(new ErrorHandler(404, "The user not found!"));
@@ -79,18 +75,18 @@ module.exports.getSingleUserDetails = async (req, res, next) => {
         success: true,
         message: "Saved user successfully",
     })
-}
+})
 
 //Getting current user details.
-module.exports.getMyDetails = async (req, res, next) => {
+module.exports.getMyDetails = catchAsyncError(async (req, res, next) => {
     let user = await userModel.findById(req.user.id);
     res.status(201).json({
         success: true,
-        message: "Saved user successfully",
+        user,
     })
-}
+})
 
-module.exports.updateMyDetails = async (req, res, next) => {
+module.exports.updateMyDetails = catchAsyncError(async (req, res, next) => {
     await userModel.findByIdAndUpdate(req.user.id, req.body, { new: true, runValidators: true }).then((article) => {
         console.log(article);
         res.status(200).json({
@@ -101,33 +97,23 @@ module.exports.updateMyDetails = async (req, res, next) => {
         return next(new ErrorHandler(302, `${err.errors.username || err.errors.email}`));
 
     })
-}
+})
 
-// module.exports.updateImage = async(req,res,next)=>{
-//     if(req.body.image === "delete"){
-//         await userModel.findOneAndUpdate(req.user.id,{image: undefined}, { new: true}).then((image)=>{
-//             console.log(image);
-//             res.status(200).json({
-//                 success: true,
-//                 message: "Image delete successfully!",
-//             })
-//         }).catch((err)=>{
-//             return next(new ErrorHandler(302, `Image cannot delete!`));
-//         })
-//     }
-//     await userModel.findOneAndUpdate(req.user.id, {image: req.body.image}, { new: true}).then((image)=>{
-//         console.log(image);
-//         res.status(200).json({
-//             success: true,
-//             message: "Image change successfully!",
-//         })
-//     }).catch((err)=>{
-//         return next(new ErrorHandler(302, `Image cannot change!`));
-//     })
-// }
+module.exports.updateMyAvatar = catchAsyncError(async (req, res, next) => {
+    const avatarData = req.file;
+    let url = await uploadImagesViaImageKit(avatarData.buffer, avatarData.originalname);
+    let user = await userModel.findByIdAndUpdate(req.user.id, { avatar: url }, { new: true });
+    if (!user) {
+        return next(new ErrorHandler(302, `Profile picture cannot change, please try again!`));
+    }
+    res.status(201).json({
+        success: true,
+        message: `Profile picture update successfully ${url}`,
+    })
+})
 
 //Updating password using old-password.
-module.exports.updatePassword = async (req, res, next) => {
+module.exports.updatePassword = catchAsyncError(async (req, res, next) => {
     let { oldPassword, newPassword, confirmPassword } = req.body;
     if (newPassword !== confirmPassword || (oldPassword === undefined || newPassword === undefined || confirmPassword === undefined)) {
         return next(new ErrorHandler(401, "Please fill the fields properly!"));
@@ -143,10 +129,10 @@ module.exports.updatePassword = async (req, res, next) => {
         return next(new ErrorHandler(401, "Password cannot update!"));
     }
     sendToken(user, 200, res, "Update password successfully");
-}
+})
 
 //Forget password without loggin.
-module.exports.forgetPassword = async (req, res, next) => {
+module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     let user = await userModel.findOne({ email: req.body.email });
     if (!user) {
         return next(new ErrorHandler(404, "User does not exist!"));
@@ -169,9 +155,9 @@ module.exports.forgetPassword = async (req, res, next) => {
         await user.save({ validateBeforeSave: false });
         return next(new ErrorHandler(324, `Email cannot send due to internal problem! ${error}`));
     }
-}
+})
 
-module.exports.resetPassword = async (req, res, next) => {
+module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
     let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
     let user = await userModel.findOne({ resetPasswordToken, resetPasswordExpire: { $gt: Date.now() }, });
     if (!user) {
@@ -188,4 +174,4 @@ module.exports.resetPassword = async (req, res, next) => {
         success: true,
         message: "password changed successfully!",
     })
-}
+})

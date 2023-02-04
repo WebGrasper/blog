@@ -1,6 +1,10 @@
 const express = require('express');
-const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateImage} = require("../Controllers/userControlller");
+const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar} = require("../Controllers/userControlller");
 const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
+const multer = require('multer');
+
+//Multer is used to handle the form-data e.g., images, files,etc.
+const upload = multer();
 
 //express router/
 const router = express.Router();
@@ -10,7 +14,7 @@ router.route('/signin').post(signin);
 router.route('/logout').put(logout);
 router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
 router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
-// router.route('/updateImage').put(isAuthenticated, updateImage);
+router.route('/updateMyAvatar').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
 router.route('/getSingleUserDetails/:id').get(isAuthenticated, getSingleUserDetails);
 router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);

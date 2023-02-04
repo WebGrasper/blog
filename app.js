@@ -7,6 +7,7 @@ const userRoute = require("../blog/backend/Routes/userRoute");
 const articleRoute = require("../blog/backend/Routes/articleRoute");
 const error = require("../blog/backend/Middlewares/error");
 
+
 const app = express();
 const port = 3000 || process.env.PORT;
 
@@ -22,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //calling database for initialization.
 database();
+
 
 //Using router.
 app.use('/app/v1',userRoute);

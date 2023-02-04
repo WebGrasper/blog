@@ -16,14 +16,12 @@ const userSchema = new mongoose.Schema({
     required: [true, "Can't be blank"],
     match: [/\S+@\S+\.\S+/, "Invalid email"],
   },
-  image: String,
+  avatar: String,
   password: {
     type: String,
     required: true,
     match: [
-      /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z]{8}$/,
-      "The password should be minimum of 8 characters, which consist atleast one Upper, one Lower case alphabet, one number and one special character.",
-    ],
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,1024}$/,"The password should be minimum of 8 characters, which consist atleast one Upper, one Lower case alphabet, one number and one special character[!@#$%^&*]."]
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
@@ -34,9 +32,7 @@ const userSchema = new mongoose.Schema({
 });
 
 //Validator for email.
-userSchema.plugin(uniqueValidator, {
-  message: "is already taken",
-});
+userSchema.plugin(uniqueValidator);
 
 
 
