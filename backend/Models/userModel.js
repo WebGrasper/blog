@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
 const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
@@ -31,8 +30,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-//Validator for email.
-userSchema.plugin(uniqueValidator);
 
 
 

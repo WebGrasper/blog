@@ -1,0 +1,227 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+
+
+.navbar {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    height: 5rem;
+    background-color: black;
+    box-shadow: 0px 1px 10px #bbbbbb;
+}
+
+.container-1 {
+    display: flex;
+    align-items: center;
+}
+
+.container-1-h1 {
+    color: white;
+    padding-left: 2rem;
+}
+
+.container-2 {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.container-2-span {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.container-2-search-box {
+    width: 25rem;
+    padding: 0.6rem;
+    border-radius: 2.5rem;
+    border: 0.13rem solid black;
+    transition: 0.4s ease;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    text-indent: 1rem;
+}
+
+.container-2-search-box::placeholder {
+    color: rgb(49, 49, 49);
+    letter-spacing: 0.08rem;
+}
+
+.container-2-search-box:focus {
+    outline: none;
+}
+
+.container-2-search-box:hover {
+    width: 27rem;
+    transition: 0.4s ease;
+}
+
+.container-2-search-button {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.menu-button,
+.close-button,
+.container-2-search-button {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 48;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.check-box, .menu-button, .close-button{
+    display: none;
+}
+
+.close-button,
+.menu-button {
+    color: white;
+    position: absolute;
+    font-size: 3rem;
+    transition: all 0.4s ease;
+}
+
+.container-button{
+    display: grid;
+}
+
+.container-3 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding-right: 1rem;
+}
+
+.link {
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    font-size: large;
+}
+
+
+
+@media only screen and (max-width: 1280px) {
+    .navbar {
+        grid-template-columns: auto auto auto;
+    }
+
+    .container-1-h1 {
+        padding-left: 3rem;
+    }
+
+    .link {
+        font-size: medium;
+    }
+}
+
+@media only screen and (max-width: 1080px) {
+    .navbar {
+        grid-template-columns: auto auto auto;
+    }
+
+    .container-1-h1 {
+        padding-left: 2rem;
+    }
+
+    .container-2-search-box {
+        width: 20rem;
+        padding: 0.5rem;
+    }
+
+    .container-2-search-box:hover {
+        width: 21rem;
+    }
+}
+
+@media only screen and (max-width: 968px) {
+    .container-2-search-box {
+        width: 15rem;
+        padding: 0.4rem;
+    }
+
+    .container-2-search-box:hover {
+        width: 16rem;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .container-2-search-box {
+        width: 10rem;
+        padding: 0.3rem;
+    }
+    .container-2-search-box:hover {
+        width: 11rem;
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    .container-2{
+        display: none;
+    }
+    .navbar{
+        display: grid;
+        grid-template-columns: auto 7rem;
+    }
+    .menu-button, .check-box, .close-button{
+        display: block;
+
+    }
+
+    .container-1-h1 {
+        font-size: 1.5rem;
+        padding-left: 3rem;
+    }
+
+    .container-3 {
+        display: grid;
+        text-align: center;
+        top: 5rem;
+        left: 0;
+        position: fixed;
+        background: black;
+        height: 50vh;
+        width: 100vw;
+        transition: all 0.4s ease;
+        transform: translateX(100%);
+    }
+
+    .link {
+        font-size: 1.3rem;
+        color: white;
+    }
+    .container-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .check-box{
+        z-index: 1;
+        opacity: 0;
+        
+    }
+    .close-button{
+        opacity: 0;
+    }
+
+    #check:checked ~.container-3{
+        transition: all 0.4s ease;
+        transform: translateX(0%);
+    }
+    #check:checked ~ .menu-button{
+        opacity: 0;
+        transition: all 0.4s ease;
+    }
+    #check:checked ~ .close-button{
+        opacity: 100%;
+        transition: all 0.4s ease;
+    }
+}
