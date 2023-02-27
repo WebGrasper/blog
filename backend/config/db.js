@@ -7,7 +7,7 @@ const db = ()=>{
     mongoose.set('strictQuery', true);
 
     //database connection
-    mongoose.connect('mongodb://127.0.0.1:27017/blog',).then(()=>{
+    mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@blog.1b3xjmd.mongodb.net/?retryWrites=true&w=majority`,).then(()=>{
         console.log("Database connected successfully!");
     }).catch((err)=>{
         console.log(err);

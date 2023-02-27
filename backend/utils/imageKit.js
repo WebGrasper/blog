@@ -1,12 +1,12 @@
 const imagekit = require("imagekit");
 
-const ImageKit = new imagekit({
-    publicKey: "public_v0j9tK3PYBZ+w4xIE1L83wyw1f0=",
-    privateKey: "private_SETXKsfjPM6s1VGhHIGm78GtXc4=",
-    urlEndpoint: "https://ik.imagekit.io/94nzrpaat",
-})
 
-module.exports.uploadImagesViaImageKit = async(imageBuffer, imageName) =>{
+module.exports.uploadImagesViaImageKit = async (imageBuffer, imageName) => {
+    const ImageKit = new imagekit({
+        publicKey: process.env.IMAGEKIT_PUBLIC,
+        privateKey: process.env.IMAGEKIT_SECRET,
+        urlEndpoint: process.env.IMAGEKIT_URL,
+    })
     imageBuffer = imageBuffer.toString('base64');
     let data = undefined;
     await ImageKit.upload({

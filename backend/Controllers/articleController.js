@@ -3,16 +3,24 @@ const ErrorHandler = require("../utils/errorHandler");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 const { uploadImagesViaImageKit } = require('../utils/imageKit');
 
-
-
-
 module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     let { title, description } = JSON.parse(JSON.stringify(req.body));
     let ImageArray = req.files;
     let url = [];
+
+    /* Checking image size. Don't allow if size is greater than 1 MB of each image.*/
+    for(let i in ImageArray){
+     if (ImageArray[i].size > 1000000) {
+        return next(new ErrorHandler(413, "Image size is greater than 1 MB."));
+     }   
+    }
+
+    /* Uploading each image to imageKit.io*/
     for (let i in ImageArray) {
         url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname);
     }
+
+    /* Creating new document.*/
     let article = await articleModel.create({
         title,
         description,
@@ -27,6 +35,17 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
         article,
     })
 });
+
+module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
+    let article = await articleModel.find(req.params);
+    if (!article) {
+        return next(new ErrorHandler(404, "Article not available!"));
+    }
+    res.status(200).json({
+        success: true,
+        article,
+    })
+})
 
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.find();
