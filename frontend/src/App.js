@@ -1,4 +1,5 @@
 import './App.css';
+import Footer from './components/footer/footer';
 import Navbar from './components/navbar/navbar';
 
 function App() {
@@ -10,7 +11,7 @@ function App() {
       <div className="menu-navbar">menu</div>
       <div className="menu">menu</div>
       <div className="main">main</div>
-      <div className="footer">footer</div>
+      <Footer/>
       </div>
     </div>
   );
