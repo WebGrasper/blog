@@ -42,10 +42,6 @@ app.all('*',(req,res)=>{
 //NodeJS uncaught error handler.
 app.use(error);
 
-app.get("/",(req,res)=>{
-  console.log("Hello!");
-})
-
 app.listen(port, () => {
   console.log(`Server is working on ${port}`);
 });
