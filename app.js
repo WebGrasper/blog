@@ -28,22 +28,22 @@ app.get('/',(req,res)=>{
   res.send("hello");
 });
 
-//Using router.
-app.use('/app/v1',userRoute);
-app.use('/app/v2/',articleRoute);
+// //Using router.
+// app.use('/app/v1',userRoute);
+// app.use('/app/v2/',articleRoute);
 
-//Handling error when user request for invalid route.
-app.all('*',(req,res)=>{
-  let statusCode = err.statusCode || 500;
-  return res.status(statusCode).json({
-    success: false,
-    message: `Requested URL ${req.path} not found!`,
-    stack: err.stack,
-  });
-});
+// //Handling error when user request for invalid route.
+// app.all('*',(req,res)=>{
+//   let statusCode = err.statusCode || 500;
+//   return res.status(statusCode).json({
+//     success: false,
+//     message: `Requested URL ${req.path} not found!`,
+//     stack: err.stack,
+//   });
+// });
 
-//NodeJS uncaught error handler.
-app.use(error);
+// //NodeJS uncaught error handler.
+// app.use(error);
 
 
 app.listen(port, () => {
