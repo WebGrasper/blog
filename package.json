@@ -4,9 +4,7 @@
   "description": "The blog website using mern",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "dist": "mkdir -p dist && cp -R node_modules src server.js ... dist"
+    "test": "echo \"Error: no test specified\" && exit 1"
     },
   "author": "",
   "license": "ISC",
