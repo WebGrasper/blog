@@ -43,7 +43,7 @@ app.all('*',(req,res)=>{
 app.use(error);
 
 app.get("/",(req,res)=>{
-  res.send("Hello!");
+  console.log("Hello!");
 })
 
 app.listen(port, () => {
