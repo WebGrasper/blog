@@ -9,7 +9,7 @@ const error = require("../blog/backend/Middlewares/error");
 
 
 const app = express();
-const port = 4000 || process.env.PORT;
+const port = process.env.PORT || 4000;
 
 //dotenv config.
 dotenv.config({ path: "./backend/config/config.env" });
