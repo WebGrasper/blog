@@ -30,7 +30,7 @@ app.get("/",(req,res)=>{
 
 //Using router.
 app.use('/app/v1',userRoute);
-app.use('/app/v2/',articleRoute);
+app.use('/app/v2',articleRoute);
 
 //Handling error when user request for invalid route.
 app.all('*',(req,res)=>{
