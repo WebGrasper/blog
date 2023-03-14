@@ -72,7 +72,7 @@ module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => 
     }
     res.status(201).json({
         success: true,
-        message: "Saved user successfully",
+        user,
     })
 })
 

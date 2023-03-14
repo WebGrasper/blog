@@ -37,7 +37,7 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
-    let article = await articleModel.find(req.params);
+    let article = await articleModel.findById(req.params.articleId);
     if (!article) {
         return next(new ErrorHandler(404, "Article not available!"));
     }
