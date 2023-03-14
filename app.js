@@ -24,13 +24,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //calling database for initialization.
 database();
 
-app.get('/',(req,res)=>{
-  res.status(200).json({
-    success:true,
-    message:`Server is working at port ${port}`
-  })
-})
-
 //Using router.
 app.use('/app/v1',userRoute);
 app.use('/app/v2',articleRoute);
@@ -47,6 +40,13 @@ app.all('*',(req,res)=>{
 
 //NodeJS uncaught error handler.
 app.use(error);
+
+app.get('/',(req,res)=>{
+  res.status(200).json({
+    success:true,
+    message:`Server is working at port ${port}`
+  })
+})
 
 app.listen(port, () => {
   console.log(`Server is working on ${port}`);
