@@ -7,13 +7,6 @@ const sendEmail = require("../utils/sendEmail");
 const { uploadImagesViaImageKit } = require("../utils/imageKit");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 
-module.exports.home = catchAsyncError(async (req, res, next) => {
-    res.status(200).json({
-        success: true,
-        message: "Server is working",
-    })
-});
-
 module.exports.signup = catchAsyncError(async (req, res, next) => {
     //Checking if requesting user is already exists via email.
     const user = await userModel.findOne({ email: req.body.email });
