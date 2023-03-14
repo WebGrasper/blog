@@ -9,7 +9,6 @@ const upload = multer();
 //express router/
 const router = express.Router();
 
-router.route('/').get(home);
 router.route('/signup').post(signup);
 router.route('/signin').post(signin);
 router.route('/logout').put(logout);
