@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-const ErrorHandler = require("../utils/errorHandler");
 
 const sendEmail = async function(data,next){
     const transporter = nodemailer.createTransport({

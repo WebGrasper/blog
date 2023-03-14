@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
     "build": "echo 'build script executed'"
-    },
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -23,7 +23,8 @@
     "nodemailer": "^6.9.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "firebase-tools": "^11.24.1",
+    "nodemon": "^2.0.21"
   },
   "repository": {
     "type": "git",

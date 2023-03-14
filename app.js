@@ -2,17 +2,17 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
-const database = require("./backend/config/db.js");
-const userRoute = require("../blog/backend/Routes/userRoute");
-const articleRoute = require("../blog/backend/Routes/articleRoute");
-const error = require("../blog/backend/Middlewares/error");
+const database = require("./config/db");
+const userRoute = require("./Routes/userRoute");
+const articleRoute = require("./Routes/articleRoute");
+const error = require("./Middlewares/error");
 
 
 const app = express();
-const port = 4000 || process.env.PORT;
+const port = process.env.PORT || 4000;
 
 //dotenv config.
-dotenv.config({ path: "./backend/config/config.env" });
+dotenv.config({ path: ".env" });
 
 //Enable cookie-parser.
 app.use(cookieParser());
@@ -24,6 +24,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //calling database for initialization.
 database();
 
+app.get("/",(req,res)=>{
+  res.send("Server Working!");
+})
 
 //Using router.
 app.use('/app/v1',userRoute);
