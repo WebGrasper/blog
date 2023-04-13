@@ -121,8 +121,9 @@ module.exports.updatePassword = catchAsyncError(async (req, res, next) => {
     if (!storedPassword) {
         return next(new ErrorHandler(401, "old password not matched!"));
     }
-    let user = await userModel.findByIdAndUpdate(req.user.id, { new: true, runValidators: true }, {
-        password: await bcryptjs.hash(newPassword, 12),
+    let hashedPassword = await bcryptjs.hash(newPassword, 12);
+    let user = await userModel.findByIdAndUpdate(req.user.id,{
+        password: hashedPassword
     })
     if (!user) {
         return next(new ErrorHandler(401, "Password cannot update!"));

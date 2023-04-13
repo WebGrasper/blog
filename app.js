@@ -6,6 +6,9 @@ const database = require("./config/db");
 const userRoute = require("./Routes/userRoute");
 const articleRoute = require("./Routes/articleRoute");
 const error = require("./Middlewares/error");
+const cors = require("cors");
+
+app.use(cors());
 
 
 const app = express();
