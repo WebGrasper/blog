@@ -8,8 +8,6 @@ const articleRoute = require("./Routes/articleRoute");
 const error = require("./Middlewares/error");
 const cors = require("cors");
 
-app.use(cors());
-
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -19,6 +17,9 @@ dotenv.config({ path: ".env" });
 
 //Enable cookie-parser.
 app.use(cookieParser());
+
+//Enable cors for making policies.
+app.use(cors());
 
 //body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());
