@@ -13,12 +13,13 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
     if (user) {
         return next(new ErrorHandler(302, "User already exist!"));
     }
-    let { username, email, password } = req.body;
+    let { username, email, password, role } = req.body;
     //registering a new user.
     await userModel.create({
         username,
         email,
-        password
+        password,
+        role,
     });
 
     //Encrypting and updating password when normal password successfully passes the mongoose matching parsing.
