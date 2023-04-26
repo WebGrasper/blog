@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const sendToken = async (user, statuscode, res, message) => {
     //extracting ObjectID of Current User.
     let ID = user.id.toString();
+    // console.log(user);
 
     //Creating the Token with using ObjectID.
     let token = jwt.sign({ id: ID }, process.env.JWT_SECRET_KEY, {
@@ -13,8 +14,9 @@ const sendToken = async (user, statuscode, res, message) => {
     res.status(statuscode).cookie('token', token, {
         expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 5 * 60 * 60 * 1000),
     }).json({
-        user: user,
         success: true,
+        user: user,
+        token:token,
         message: message,
     })
 }
