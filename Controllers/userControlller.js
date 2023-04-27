@@ -47,13 +47,19 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.logout = catchAsyncError(async (req, res, next) => {
-    res.status(200).cookie("token", null, {
-        expires: new Date(Date.now()),
-        httpOnly: true,
-    }).json({
-        success: true,
-        message: "Logout successfully!",
-    });
+    const {jwtInCookie} = req.body;
+    const token = req.cookies.token;
+    if(jwtInCookie === token){
+        res.status(200).cookie("token", null, {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+        }).json({
+            success: true,
+            message: "Logout successfully!",
+        });
+    } else{
+        return next(new ErrorHandler(302, `Cannot logout due to server issue!`));
+    }
 });
 
 //Getting all users details.
