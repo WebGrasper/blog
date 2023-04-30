@@ -85,7 +85,7 @@ module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => 
 
 //Getting current user details.
 module.exports.getMyDetails = catchAsyncError(async (req, res, next) => {
-    let user = await userModel.findById(req.user.id);
+    let user = await userModel.findById(req.user.id, {password: 0});
     res.status(201).json({
         success: true,
         user,
