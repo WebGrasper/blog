@@ -12,7 +12,7 @@ const router = express.Router();
 router.route('/signup').post(signup);
 router.route('/signin').post(signin);
 router.route('/logout').put(logout);
-router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
+router.route('/getMyDetails/:token').get(isAuthenticated, getMyDetails);
 router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
 router.route('/updateMyAvatar').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
 router.route('/getSingleUserDetails/:id').get(isAuthenticated, isAuthorizedUser,getSingleUserDetails);

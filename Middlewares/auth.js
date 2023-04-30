@@ -4,7 +4,7 @@ const ErrorHandler = require("../utils/errorHandler");
 
 //Authenticating the User with Token from cookies.
 module.exports.isAuthenticated = async (req, res, next) => {
-    let { token } = req.cookies;
+    let token = req.params.token;
     if (!token) {
         return next(new ErrorHandler(404,`Please login to access this resources!`));
     }
