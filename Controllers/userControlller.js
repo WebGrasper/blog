@@ -73,7 +73,7 @@ module.exports.getAllUserDetails = catchAsyncError(async (req, res, next) => {
 
 //Getting single user detail using ObjectID.
 module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => {
-    let user = await userModel.findById(req.params.id);
+    let user = await userModel.findById(req.params.id, {password: 0});
     if (!user) {
         return next(new ErrorHandler(404, "The user not found!"));
     }
