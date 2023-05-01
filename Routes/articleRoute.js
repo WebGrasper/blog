@@ -5,7 +5,7 @@ const multer = require("multer");
 const upload = multer();
 const router = express.Router();
 
-router.route('/createArticle').post(isAuthenticated, isAuthorizedUser, upload.array('articleImage',2), createArticle);
+router.route('/createArticle/:token').post(isAuthenticated, isAuthorizedUser, upload.array('articleImage',2), createArticle);
 router.route('/getSingleArticle/:articleId').get(getSingleArticle);
 router.route('/getArticles').get(getArticles);
 router.route('/updateArticle/:id').put(isAuthenticated, isAuthorizedUser, updateArticle);
