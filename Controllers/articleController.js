@@ -9,10 +9,10 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     let url = [];
 
     /* Checking image size. Don't allow if size is greater than 1 MB of each image.*/
-    for(let i in ImageArray){
-     if (ImageArray[i].size > 1000000) {
-        return next(new ErrorHandler(413, "Image size is greater than 1 MB."));
-     }   
+    for (let i in ImageArray) {
+        if (ImageArray[i].size > 1000000) {
+            return next(new ErrorHandler(413, "Image size is greater than 1 MB."));
+        }
     }
 
     /* Uploading each image to imageKit.io*/
@@ -49,6 +49,18 @@ module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
 
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.find();
+    if (!article.length) {
+        return next(new ErrorHandler(404, "Article not available!"));
+    }
+    res.status(200).json({
+        success: true,
+        article,
+    })
+})
+
+module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
+    let value = req.params.title;
+    let article = await articleModel.find({ title: { $regex: `^${value}`, $options: "i" } });
     if (!article.length) {
         return next(new ErrorHandler(404, "Article not available!"));
     }

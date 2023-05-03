@@ -1,5 +1,5 @@
 const express = require("express");
-const { createArticle, getArticles, updateArticle, deleteArticle, getSingleArticle } = require("../Controllers/articleController");
+const { createArticle, getArticles, updateArticle, deleteArticle, getSingleArticle, searchQueryArticles } = require("../Controllers/articleController");
 const { isAuthenticated, isAuthorizedUser } = require("../Middlewares/auth");
 const multer = require("multer");
 const upload = multer();
@@ -8,6 +8,7 @@ const router = express.Router();
 router.route('/createArticle/:token').post(isAuthenticated, isAuthorizedUser, upload.array('articleImage',2), createArticle);
 router.route('/getSingleArticle/:articleId').get(getSingleArticle);
 router.route('/getArticles').get(getArticles);
+router.route('/searchArticles/:title').get(searchQueryArticles);
 router.route('/updateArticle/:id').put(isAuthenticated, isAuthorizedUser, updateArticle);
 router.route('/deleteArticle/:id').delete(isAuthenticated, isAuthorizedUser, deleteArticle);
 
