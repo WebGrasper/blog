@@ -60,14 +60,8 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
 
 module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     let { title } = req.params;
-    let article = undefined;
-    if (title === "getAllArticles") {
-        // console.log('get articles unconditonally');
-        article = await articleModel.find();
-    } else {
-        // console.log('get articles conditionally');
-        article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
-    }
+    // console.log('get articles conditionally');
+    let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
     if (!article.length) {
         return next(new ErrorHandler(404, "Article not available!"));
     }
