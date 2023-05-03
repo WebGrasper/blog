@@ -59,8 +59,8 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
-    let value = req.params.title;
-    let article = await articleModel.find({ title: { $regex: `^${value}`, $options: "i" } });
+    let {title} = req.params;
+    let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
     if (!article.length) {
         return next(new ErrorHandler(404, "Article not available!"));
     }
