@@ -62,10 +62,10 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     let { title } = req.params;
     let article = undefined;
     if (title === "getAllArticles") {
-        console.log('get articles unconditonally');
+        // console.log('get articles unconditonally');
         article = await articleModel.find();
     } else {
-        console.log('get articles conditionally');
+        // console.log('get articles conditionally');
         article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
     }
     if (!article.length) {
