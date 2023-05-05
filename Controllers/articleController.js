@@ -64,7 +64,7 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     if (title === "all") {
         // Redirect to the getArticles handler
         return exports.getArticles(req, res, next);
-      }
+    }
     // console.log('get articles conditionally');
     let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
     if (!article.length) {
@@ -74,6 +74,32 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
         success: true,
         article,
     })
+})
+
+module.exports.filterArticlesByCategory = catchAsyncError(async (req, res, next) => {
+    const { food, travel, politics, technology } = req.body;
+    const categoryForFilter = {
+        Food: food,
+        Travel: travel,
+        Politics: politics,
+        Technology: technology,
+    };
+
+    const filteredCategory = {
+        $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({category: key})),
+    }
+    
+    const article = await articleModel.find(filteredCategory);
+
+    if (!article.length) {
+        return next(new ErrorHandler(404, "Article not available!"));
+    }
+
+    res.status(200).json({
+        success: true,
+        article,
+    });
+
 })
 
 module.exports.updateArticle = catchAsyncError(async (req, res, next) => {
