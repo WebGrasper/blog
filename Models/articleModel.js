@@ -25,7 +25,15 @@ const articleSchema = new mongoose.Schema({
     createdAt:{
         type:Date,
         default: Date.now,
-    }
+    },
+    impressions: {
+        type: Number,
+        default: 0,
+    },
+    category: {
+        type: String,
+        required: true,
+    },
 })
 
 module.exports = new mongoose.model('article', articleSchema);

@@ -4,7 +4,7 @@ const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 const { uploadImagesViaImageKit } = require('../utils/imageKit');
 
 module.exports.createArticle = catchAsyncError(async (req, res, next) => {
-    let { title, description } = JSON.parse(JSON.stringify(req.body));
+    let { title, description, category } = JSON.parse(JSON.stringify(req.body));
     let ImageArray = req.files;
     let url = [];
 
@@ -24,6 +24,7 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.create({
         title,
         description,
+        category,
         articleImage: url,
         createdBy: req.user.id,
     });
