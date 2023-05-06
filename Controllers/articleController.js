@@ -77,19 +77,38 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.filterArticlesByCategory = catchAsyncError(async (req, res, next) => {
-    const { food, travel, politics, technology } = req.body;
-    const categoryForFilter = {
-        Food: food,
-        Travel: travel,
-        Politics: politics,
-        Technology: technology,
-    };
+    const { title, formData } = req.body;
+    const { food, travel, politics, technology } = formData;
+    // console.log(title.length, formData);
+    let article = undefined;
+    if (title !== null) {
+        article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
+    } else {
+        const categoryForFilter = {
+            Food: food,
+            Travel: travel,
+            Politics: politics,
+            Technology: technology,
+        };
 
-    const filteredCategory = {
-        $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({category: key})),
+        const filteredCategory = {
+            $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({ category: key })),
+        }
+
+        article = await articleModel.find(filteredCategory);
     }
-    
-    const article = await articleModel.find(filteredCategory);
+    // const categoryForFilter = {
+    //     Food: food,
+    //     Travel: travel,
+    //     Politics: politics,
+    //     Technology: technology,
+    // };
+
+    // const filteredCategory = {
+    //     $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({category: key})),
+    // }
+
+    // const article = await articleModel.find(filteredCategory);
 
     if (!article.length) {
         return next(new ErrorHandler(404, "Article not available!"));
