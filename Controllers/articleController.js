@@ -76,14 +76,16 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
-module.exports.filterArticlesByCategory = catchAsyncError(async (req, res, next) => {
-    const { title, formData } = req.body;
-    const { food, travel, politics, technology } = formData;
+module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
+    const { data } = req.body;
+    // console.log(typeof data === 'string');
+    // const { food, travel, politics, technology } = formData;
     // console.log(title.length, formData);
     let article = undefined;
-    if (title !== null) {
-        article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
+    if (typeof data === 'string') {
+        article = await articleModel.find({ title: { $regex: `^${data}`, $options: "i" } });
     } else {
+        const { food, travel, politics, technology } = data;
         const categoryForFilter = {
             Food: food,
             Travel: travel,
@@ -94,7 +96,7 @@ module.exports.filterArticlesByCategory = catchAsyncError(async (req, res, next)
         const filteredCategory = {
             $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({ category: key })),
         }
-
+        // console.log(filteredCategory);
         article = await articleModel.find(filteredCategory);
     }
     // const categoryForFilter = {
