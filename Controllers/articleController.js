@@ -59,28 +59,26 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
-module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
-    let { title } = req.params;
-    if (title === "all") {
-        // Redirect to the getArticles handler
-        return exports.getArticles(req, res, next);
-    }
-    // console.log('get articles conditionally');
-    let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
-    if (!article.length) {
-        return next(new ErrorHandler(404, "Article not available!"));
-    }
-    res.status(200).json({
-        success: true,
-        article,
-    })
-})
+// module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
+//     let { title } = req.params;
+//     if (title === "all") {
+//         // Redirect to the getArticles handler
+//         return exports.getArticles(req, res, next);
+//     }
+//     // console.log('get articles conditionally');
+//     let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
+//     if (!article.length) {
+//         return next(new ErrorHandler(404, "Article not available!"));
+//     }
+//     res.status(200).json({
+//         success: true,
+//         article,
+//     })
+// })
 
 module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
     const { data } = req.body;
     // console.log(typeof data === 'string');
-    // const { food, travel, politics, technology } = formData;
-    // console.log(title.length, formData);
     let article = undefined;
     if (typeof data === 'string') {
         article = await articleModel.find({ title: { $regex: `^${data}`, $options: "i" } });
@@ -99,18 +97,6 @@ module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
         // console.log(filteredCategory);
         article = await articleModel.find(filteredCategory);
     }
-    // const categoryForFilter = {
-    //     Food: food,
-    //     Travel: travel,
-    //     Politics: politics,
-    //     Technology: technology,
-    // };
-
-    // const filteredCategory = {
-    //     $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({category: key})),
-    // }
-
-    // const article = await articleModel.find(filteredCategory);
 
     if (!article.length) {
         return next(new ErrorHandler(404, "Article not available!"));
