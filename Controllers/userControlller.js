@@ -1,5 +1,5 @@
 const bcryptjs = require("bcryptjs");
-const crypto = require("crypto");
+// const crypto = require("crypto");
 const userModel = require("../Models/userModel");
 const sendToken = require("../utils/jwtToken");
 const ErrorHandler = require("../utils/errorHandler");
@@ -148,7 +148,8 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     let data = {
         recieverEmailID: user.email,
-        tokenUrl: `${req.protocol}://${req.get("host")}/app/v1/reset/password/${resetToken}`
+        // tokenUrl: `${req.protocol}://${req.get("host")}/app/v1/reset/password/${resetToken}`
+        tokenUrl: resetToken,
     }
     try {
         await sendEmail(data);
@@ -165,7 +166,8 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
-    let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+    // let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+    let resetPasswordToken = req.body.otp;
     let user = await userModel.findOne({ resetPasswordToken, resetPasswordExpire: { $gt: Date.now() }, });
     if (!user) {
         return next(new ErrorHandler(401, "The token is invalid or expired!"));
@@ -173,10 +175,12 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
     if (req.body.password !== req.body.confirmPassword) {
         return next(new ErrorHandler(401, "Both passwords are not matching each other, please try again!"));
     }
+    console.log(req.body.password);
     user.password = await bcryptjs.hash(req.body.password, 12);
+    console.log(user.password);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
     res.status(200).json({
         success: true,
         message: "password changed successfully!",

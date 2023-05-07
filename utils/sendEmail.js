@@ -15,7 +15,7 @@ const sendEmail = async function(data,next){
         from: "noreplyblog@gmail.com",
         to: `${data.recieverEmailID}`,
         subject: "Reset password",
-        text: `Click on this link to reset your password :\n \n ${data.tokenUrl} \n\n Link will be expire in 15 mins. \n \nIf you are not requested then please ignore it!`,
+        text: `This is your OTP: \n \n ${data.tokenUrl} \n\n It will be expire in 15 mins. \n \nIn case, if you are not requested then please ignore it!`,
     }
 
     await transporter.sendMail(mailDetails);

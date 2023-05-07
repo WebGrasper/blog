@@ -19,7 +19,7 @@ router.route('/getSingleUserDetails/:id').get(isAuthenticated, isAuthorizedUser,
 router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);
 router.route('/forgetPassword').post(forgetPassword);
-router.route('/reset/password/:token').put(resetPassword);
+router.route('/reset/password').put(resetPassword);
 
 
 module.exports = router;
