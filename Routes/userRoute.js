@@ -1,5 +1,5 @@
 const express = require('express');
-const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar, getsingleuser} = require("../Controllers/userControlller");
+const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar, getsingleuser, confirmRegistration} = require("../Controllers/userControlller");
 const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
 const multer = require('multer');
 
@@ -10,6 +10,7 @@ const upload = multer();
 const router = express.Router();
 
 router.route('/signup').post(signup);
+router.route('/confirmRegistration').post(confirmRegistration);
 router.route('/signin').post(signin);
 router.route('/logout').put(logout);
 router.route('/getMyDetails/:token').get(isAuthenticated, getMyDetails);

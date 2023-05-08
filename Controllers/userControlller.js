@@ -8,30 +8,72 @@ const { uploadImagesViaImageKit } = require("../utils/imageKit");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 
 module.exports.signup = catchAsyncError(async (req, res, next) => {
-    //Checking if requesting user is already exists via email.
-    const user = await userModel.findOne({ email: req.body.email });
+    // Checking if requesting user is already exists via email.
+    const user = await userModel.findOne({
+        email: req.body.email,  // check if email exists
+        otp: { $exists: false } // check if otp field does not exist or its value is null
+    });
     if (user) {
         return next(new ErrorHandler(302, "User already exist!"));
     }
+
     let { username, email, password, role } = req.body;
-    //registering a new user.
-    await userModel.create({
-        username,
-        email,
-        password,
-        role,
-    });
+
+    const userData = await userModel.findOneAndUpdate({ email: req.body.email }, {
+        username: username,
+        email: email,
+        password: password,
+        role: role,
+    }, { upsert: true, new: true });
+
+    let otp = userData.getOtp();
+    // console.log(otp);
 
     //Encrypting and updating password when normal password successfully passes the mongoose matching parsing.
     await userModel.findOneAndUpdate({ email: req.body.email }, { password: await bcryptjs.hash(password, 12) }, { new: true });
+    await userData.save({ validateBeforeSave: false });
 
-    res.status(201).json({
-        success: true,
-        message: "Saved user successfully",
-    })
+    let data = {
+        recieverEmailID: userData.email,
+        tokenUrl: otp,
+    }
+    try {
+        await sendEmail(data);
+        res.status(200).json({
+            success: true,
+            message: `Email send successfully to ${userData.email}`,
+        })
+    } catch (error) {
+        return next(new ErrorHandler(324, `Email cannot send due to internal problem! ${error}`));
+    }
+
 });
 
+module.exports.confirmRegistration = catchAsyncError(async(req,res,next)=>{
+    let registerationOTP = req.body.otp;
+    let user = await userModel.findOne({ registerationOTP, otpExpiry: { $gt: Date.now() }, });
+    if (!user) {
+        return next(new ErrorHandler(401, "The token is invalid or expired!"));
+    }
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
+    res.status(200).json({
+        success: true,
+        message: "User registered successfully!",
+    })
+})
+
 module.exports.signin = catchAsyncError(async (req, res, next) => {
+    const isNotVerified = await userModel.findOne({
+        email: req.body.email, // email should exist
+        otp: { $exists: true } // otp should exist
+      });
+    
+    if(isNotVerified){
+        return next(new ErrorHandler(401, `Please verify your account!`));
+    }
+
     const { email, password } = req.body;
     let user = await userModel.findOne({ email: email });
     if (user) {
@@ -47,9 +89,9 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.logout = catchAsyncError(async (req, res, next) => {
-    const {jwtInCookie} = JSON.parse(JSON.stringify(req.body));
+    const { jwtInCookie } = JSON.parse(JSON.stringify(req.body));
     const token = req.cookies.token;
-    if(jwtInCookie === token){
+    if (jwtInCookie === token) {
         res.status(200).cookie("token", null, {
             expires: new Date(Date.now()),
             httpOnly: true,
@@ -57,7 +99,7 @@ module.exports.logout = catchAsyncError(async (req, res, next) => {
             success: true,
             message: "Logout successfully!",
         });
-    } else{
+    } else {
         return next(new ErrorHandler(302, `Cannot logout due to server issue!`));
     }
 });
@@ -73,7 +115,7 @@ module.exports.getAllUserDetails = catchAsyncError(async (req, res, next) => {
 
 //Getting single user detail using ObjectID.
 module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => {
-    let user = await userModel.findById(req.params.id, {password: 0});
+    let user = await userModel.findById(req.params.id, { password: 0 });
     if (!user) {
         return next(new ErrorHandler(404, "The user not found!"));
     }
@@ -85,7 +127,7 @@ module.exports.getSingleUserDetails = catchAsyncError(async (req, res, next) => 
 
 //Getting current user details.
 module.exports.getMyDetails = catchAsyncError(async (req, res, next) => {
-    let user = await userModel.findById(req.user.id, {password: 0});
+    let user = await userModel.findById(req.user.id, { password: 0 });
     res.status(201).json({
         success: true,
         user,
@@ -129,7 +171,7 @@ module.exports.updatePassword = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler(401, "old password not matched!"));
     }
     let hashedPassword = await bcryptjs.hash(newPassword, 12);
-    let user = await userModel.findByIdAndUpdate(req.user.id,{
+    let user = await userModel.findByIdAndUpdate(req.user.id, {
         password: hashedPassword
     })
     if (!user) {
