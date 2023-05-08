@@ -39,10 +39,10 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
         if (isPassword) {
             sendToken(user, 200, res, "Login Successfully");
         } else {
-            return next(new ErrorHandler(401, `Invalid login details,password!`));
+            return next(new ErrorHandler(401, `Invalid login details!`));
         }
     } else {
-        return next(new ErrorHandler(401, `Invalid login details,email!`));
+        return next(new ErrorHandler(401, `Invalid login details!`));
     }
 });
 
