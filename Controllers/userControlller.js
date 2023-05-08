@@ -24,7 +24,7 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
         email: email,
         password: password,
         role: role,
-    }, { upsert: true, new: true });
+    }, { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true });
 
     let otp = userData.getOtp();
     // console.log(otp);
@@ -49,9 +49,10 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
 
 });
 
-module.exports.confirmRegistration = catchAsyncError(async(req,res,next)=>{
-    let registerationOTP = req.body.otp;
-    let user = await userModel.findOne({ registerationOTP, otpExpiry: { $gt: Date.now() }, });
+module.exports.confirmRegistration = catchAsyncError(async (req, res, next) => {
+    // let registerationOTP = req.body.otp;
+    let user = await userModel.findOne({ otp: req.body.otp, otpExpiry: { $gt: Date.now() } });
+
     if (!user) {
         return next(new ErrorHandler(401, "The token is invalid or expired!"));
     }
@@ -68,9 +69,9 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
     const isNotVerified = await userModel.findOne({
         email: req.body.email, // email should exist
         otp: { $exists: true } // otp should exist
-      });
-    
-    if(isNotVerified){
+    });
+
+    if (isNotVerified) {
         return next(new ErrorHandler(401, `Please verify your account!`));
     }
 
