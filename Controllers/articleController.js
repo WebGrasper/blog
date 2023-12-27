@@ -38,7 +38,14 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
-    let article = await articleModel.findById(req.params.articleId);
+    
+    // Extract the title from the URL parameter
+    const encodedTitle = req.params.title;
+
+    // Decode the URL-encoded title
+    const articleTitleFromURL = decodeURIComponent(encodedTitle);
+
+    const article = await articleModel.findOne({ title: articleTitleFromURL });
     if (!article) {
         return next(new ErrorHandler(404, "Article not available!"));
     }
