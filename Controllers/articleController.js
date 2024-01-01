@@ -58,7 +58,7 @@ module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.find();
     if (!article.length) {
-        return next(new ErrorHandler(404, "Article not available!"));
+        return next(new ErrorHandler(404, "Articles not available!"));
     }
     res.status(200).json({
         success: true,
