@@ -43,7 +43,7 @@ module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
     const encodedTitle = req.params.title;
 
     // Decode the URL-encoded title
-    const articleTitleFromURL = decodeURIComponent(encodedTitle);
+    const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
 
     const article = await articleModel.findOne({ title: articleTitleFromURL });
     if (!article) {
