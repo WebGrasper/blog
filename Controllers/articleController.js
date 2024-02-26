@@ -84,9 +84,12 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
 // })
 
 module.exports.search = catchAsyncError(async (req, res, next)=>{
-    console.log(req.query.name);
-    let value = req.query.name;
-    let articles = await articleModel.find({category: { $regex: `^${value}`, $options:"i" }});
+    let encodedTitle = req.query.name;
+
+    const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
+
+    let articles = await articleModel.find({category: { $regex: `^${articleTitleFromURL}`, $options:"i" }});
+    
     if(!articles){
         if (!articles.length) {
             return next(new ErrorHandler(404, "Article not available!"));
