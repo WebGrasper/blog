@@ -83,6 +83,21 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
 //     })
 // })
 
+module.exports.search = catchAsyncError(async (req, res, next)=>{
+    console.log(req.query.name);
+    let value = req.query.name;
+    let articles = await articleModel.find({category: { $regex: `^${value}`, $options:"i" }});
+    if(!articles){
+        if (!articles.length) {
+            return next(new ErrorHandler(404, "Article not available!"));
+        }    
+    }
+    res.status(200).json({
+        success: true,
+        articles,
+    });
+})
+
 module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
     const { data } = req.body;
     // console.log(typeof data === 'string');
