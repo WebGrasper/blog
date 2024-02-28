@@ -66,22 +66,23 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
-// module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
-//     let { title } = req.params;
-//     if (title === "all") {
-//         // Redirect to the getArticles handler
-//         return exports.getArticles(req, res, next);
-//     }
-//     // console.log('get articles conditionally');
-//     let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
-//     if (!article.length) {
-//         return next(new ErrorHandler(404, "Article not available!"));
-//     }
-//     res.status(200).json({
-//         success: true,
-//         article,
-//     })
-// })
+//This API is only working for stashify blog webApp
+module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
+    let { title } = req.params;
+    if (title === "all") {
+        // Redirect to the getArticles handler
+        return exports.getArticles(req, res, next);
+    }
+    // console.log('get articles conditionally');
+    let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
+    if (!article.length) {
+        return next(new ErrorHandler(404, "Article not available!"));
+    }
+    res.status(200).json({
+        success: true,
+        article,
+    })
+})
 
 module.exports.search = catchAsyncError(async (req, res, next)=>{
     let encodedTitle = req.query.name;
