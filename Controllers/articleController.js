@@ -88,7 +88,11 @@ module.exports.search = catchAsyncError(async (req, res, next)=>{
 
     const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
 
-    let articles = await articleModel.find({category: { $regex: `^${articleTitleFromURL}`, $options:"i" }});
+    let articles = await articleModel.find({
+        $or: [
+        { title: { $regex: `^${articleTitleFromURL}`, $options: "i" } },
+        { category: { $regex: `^${articleTitleFromURL}`, $options: "i" } }
+    ]});
     
     if(!articles){
         if (!articles.length) {
