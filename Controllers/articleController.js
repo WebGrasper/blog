@@ -95,7 +95,7 @@ module.exports.search = catchAsyncError(async (req, res, next)=>{
         { category: { $regex: `^${articleTitleFromURL}`, $options: "i" } }
     ]});
     
-    if(!articles){
+    if(!articles.length){
         if (!articles.length) {
             return next(new ErrorHandler(404, "Article not available!"));
         }    
