@@ -188,12 +188,12 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     if (!user) {
         return next(new ErrorHandler(404, "User does not exist!"));
     }
-    let resetToken = user.getresetPasswordToken();
+    let otp = user.getresetPasswordToken();
     await user.save({ validateBeforeSave: false });
     let data = {
         subject:"OTP for reset password",
         recieverEmailID: user.email,
-        tokenUrl: resetToken,
+        otp: otp,
     }
     try {
         await sendEmail(data);
