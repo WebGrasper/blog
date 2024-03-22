@@ -34,8 +34,9 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
     await userData.save({ validateBeforeSave: false });
 
     let data = {
+        subject:"OTP for registration",
         recieverEmailID: userData.email,
-        tokenUrl: otp,
+        otp: otp,
     }
     try {
         await sendEmail(data);
@@ -190,8 +191,8 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     let resetToken = user.getresetPasswordToken();
     await user.save({ validateBeforeSave: false });
     let data = {
+        subject:"OTP for reset password",
         recieverEmailID: user.email,
-        // tokenUrl: `${req.protocol}://${req.get("host")}/app/v1/reset/password/${resetToken}`
         tokenUrl: resetToken,
     }
     try {
