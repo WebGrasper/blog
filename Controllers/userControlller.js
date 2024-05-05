@@ -91,7 +91,6 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.logout = catchAsyncError(async (req, res, next) => {
-    const { jwtInCookie } = JSON.parse(JSON.stringify(req.body));
     const token = req.cookies.token;
     if (jwtInCookie === token) {
         res.status(200).cookie("token", null, {
