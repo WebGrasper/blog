@@ -18,11 +18,22 @@ dotenv.config({ path: ".env" });
 //Enable cookie-parser.
 app.use(cookieParser());
 
+// Define the allowed origins in an array
+const allowedOrigins = ['https://blog-zo8s.vercel.app', 'http://65.21.198.80:3000/', 'https://stashify-app.vercel.app/'];
+
+// Configure CORS middleware with options to allow only specified origins
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
 //Enable cors for making policies.
-app.use(cors({
-  origin: '*',
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 
 //body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());
