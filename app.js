@@ -18,9 +18,10 @@ dotenv.config({ path: ".env" });
 //Enable cookie-parser.
 app.use(cookieParser());
 
-//Enable cors for making policies.
+// Enable CORS for making policies.
 app.use(cors({
-  origin: ['https://blog-zo8s.vercel.app', 'http://65.21.198.80:3000/', 'https://stashify-app.vercel.app/']
+  origin: ['https://webgrasper.vercel.app', 'http://65.21.198.80:3000', 'https://stashify-app.vercel.app'],
+  credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
 }));
 
 //body-parser to parse the data from body in POST method.
