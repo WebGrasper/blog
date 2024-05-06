@@ -19,7 +19,10 @@ dotenv.config({ path: ".env" });
 app.use(cookieParser());
 
 //Enable cors for making policies.
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  credentials: true,
+}));
 
 //body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());

@@ -6,6 +6,7 @@ const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail");
 const { uploadImagesViaImageKit } = require("../utils/imageKit");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
+const jwt = require("jsonwebtoken");
 
 module.exports.signup = catchAsyncError(async (req, res, next) => {
     // Checking if requesting user is already exists via email.
@@ -91,8 +92,10 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.logout = catchAsyncError(async (req, res, next) => {
+    const tokenInHeader = req.headers.authorization.split(' ')[1]; // Extract token from headers
     const token = req.cookies.token;
-    if (jwtInCookie === token) {
+    console.log(tokenInHeader, token);
+    if (tokenInHeader === token) {
         res.status(200).cookie("token", null, {
             expires: new Date(Date.now()),
             httpOnly: true,
@@ -104,6 +107,14 @@ module.exports.logout = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler(302, `Cannot logout due to server issue!`));
     }
 });
+
+module.exports.testToken = catchAsyncError(async(req,res,next)=>{
+    const token = req.cookies.token;
+    res.status(200).json({
+        success:true,
+        token:token
+    })
+})
 
 //Getting all users details.
 module.exports.getAllUserDetails = catchAsyncError(async (req, res, next) => {
