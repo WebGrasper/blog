@@ -40,7 +40,7 @@ userSchema.methods.getresetPasswordToken = function(){
   let resetToken = Math.floor(100000 + Math.random() * 900000);
   // this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   this.resetPasswordToken = resetToken;
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  this.resetPasswordExpire = new Date(Date.now() + 15 * 60 * 1000);
   return resetToken;
 }
 
@@ -49,7 +49,7 @@ userSchema.methods.getOtp = function(){
   let get_otp = Math.floor(100000 + Math.random() * 900000);
   // this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   this.otp = get_otp;
-  this.otpExpiry = Date.now() + 15 * 60 * 1000;
+  this.otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
   return get_otp;
 }
 

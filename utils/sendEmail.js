@@ -8,6 +8,7 @@ const sendEmail = async function(data,next){
 
     try{
         const accessToken = await oAuth2Client.getAccessToken();
+        
         const transporter = nodemailer.createTransport({
             service: process.env.SMTP_SERVICE,
             auth:{
@@ -26,7 +27,8 @@ const sendEmail = async function(data,next){
             text: `This is your OTP: \n \n ${data.otp} \n\n It will be expire in 15 mins. \n \nIn case, if you are not requested then please ignore it!`,
         }
         
-        await transporter.sendMail(mailDetails);
+        const result = await transporter.sendMail(mailDetails);
+        return result
     } catch(e){
         return e;
     }

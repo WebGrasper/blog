@@ -4,13 +4,21 @@ const ErrorHandler = require("../utils/errorHandler");
 
 //Authenticating the User with Token from cookies.
 module.exports.isAuthenticated = async (req, res, next) => {
-    let token = req.params.token;
-    if (!token) {
+    let token = req.query.token;
+    if (token.trim() === '') {
         return next(new ErrorHandler(404,`Please login to access this resources!`));
     }
-    let decodedData = await JWT.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await userModel.findById(decodedData.id);
-    next();
+    try {
+        let decodedData = JWT.verify(token, process.env.JWT_SECRET_KEY);
+        req.user = await userModel.findById(decodedData.id);
+        next();
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return next(new ErrorHandler(404, `Your session has expired`));
+        } else {
+            return next(new ErrorHandler(500, `A server error has occurred`));
+        }
+    }
 }
 
 
