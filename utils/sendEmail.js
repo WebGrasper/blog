@@ -28,6 +28,7 @@ const sendEmail = async function(data,next){
         }
         
         const result = await transporter.sendMail(mailDetails);
+        // console.log(result);
         return result
     } catch(e){
         return e;

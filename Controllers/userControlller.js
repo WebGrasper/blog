@@ -61,9 +61,10 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
 
 module.exports.confirmRegistration = catchAsyncError(async (req, res, next) => {
   // let registerationOTP = req.body.otp;
+  let currentTime = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
   let user = await userModel.findOne({
     otp: req.body.otp,
-    otpExpiry: { $gt: Date.now() },
+    otpExpiry: { $gt: currentTime },
   });
 
   if (!user) {
@@ -242,13 +243,12 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     recieverEmailID: user.email,
     otp: otp,
   };
-  try {
-    await sendEmail(data);
+  sendEmail(data).then(async(result)=>{
     res.status(200).json({
       success: true,
       message: `Email send successfully to ${user.email}`,
     });
-  } catch (error) {
+  }).catch(async (error)=>{
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save({ validateBeforeSave: false });
@@ -258,15 +258,16 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
         `Email cannot send due to internal problem! ${error}`
       )
     );
-  }
+  })
 });
 
 module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
   // let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
   let resetPasswordToken = req.body.otp;
+  let currentTime = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
   let user = await userModel.findOne({
     resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() },
+    resetPasswordExpire: { $gt: currentTime },
   });
   if (!user) {
     return next(new ErrorHandler(401, "The token is invalid or expired!"));
