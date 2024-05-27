@@ -49,14 +49,19 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
     otp: otp,
   };
 
-  sendEmail(data).then((result)=>{
-    res.status(200).json({
-      success: true,
-      message: `Email send successfully to ${userData.email}`,
+  sendEmail(data)
+    .then((result) => {
+      res.status(200).json({
+        success: true,
+        message: `Email send successfully to ${userData.email}`,
+      });
+    })
+    .catch((e) => {
+      return new ErrorHandler(
+        324,
+        `Email cannot send due to internal problem! ${error}`
+      );
     });
-  }).catch((e)=>{
-      return new ErrorHandler(324, `Email cannot send due to internal problem! ${error}`)
-  })
 });
 
 module.exports.confirmRegistration = catchAsyncError(async (req, res, next) => {
@@ -243,25 +248,28 @@ module.exports.forgetPassword = catchAsyncError(async (req, res, next) => {
     recieverEmailID: user.email,
     otp: otp,
   };
-  sendEmail(data).then(async(result)=>{
-    res.status(200).json({
-      success: true,
-      message: `Email send successfully to ${user.email}`,
+  sendEmail(data)
+    .then(async (result) => {
+      res.status(200).json({
+        success: true,
+        message: `Email send successfully to ${user.email}`,
+      });
+    })
+    .catch(async (error) => {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return next(
+        new ErrorHandler(
+          324,
+          `Email cannot send due to internal problem! ${error}`
+        )
+      );
     });
-  }).catch(async (error)=>{
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
-    return next(
-      new ErrorHandler(
-        324,
-        `Email cannot send due to internal problem! ${error}`
-      )
-    );
-  })
 });
 
 module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
+  console;
   // let resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
   let resetPasswordToken = req.body.otp;
   let currentTime = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
@@ -269,6 +277,7 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
     resetPasswordToken,
     resetPasswordExpire: { $gt: currentTime },
   });
+  console.log(user, resetPasswordToken, currentTime);
   if (!user) {
     return next(new ErrorHandler(401, "The token is invalid or expired!"));
   }
@@ -290,4 +299,33 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "password changed successfully!",
   });
+});
+
+module.exports.getCommenters = catchAsyncError(async (req, res, next) => {
+  const { commenterIds } = req.body;
+  if (!Array.isArray(commenterIds) || commenterIds.length === 0) {
+    return next(
+      new ErrorHandler(
+        400,
+        "Invalid commenters IDs."
+      )
+    );
+  }
+    const commenters = await userModel.find(
+      {
+        _id: { $in: commenterIds },
+      },
+      "username avatar"
+    );
+
+    if (!commenters) {
+      return next(
+        new ErrorHandler(
+          404,
+          "Failed to fetch details. Please try again."
+        )
+      );
+    }
+
+    res.status(200).json({ success: true, commenters });
 });

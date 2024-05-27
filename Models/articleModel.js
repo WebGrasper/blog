@@ -19,7 +19,8 @@ const articleSchema = new mongoose.Schema({
         }
     ],
     createdBy:{
-        type:String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required:true,
     },
     createdAt:{
@@ -34,6 +35,32 @@ const articleSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-})
+});
 
-module.exports = new mongoose.model('article', articleSchema);
+const commentSchema = new mongoose.Schema({
+    articleID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article',
+    },
+    commenterID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    commentBody: {
+        type: String,
+        minLength: [1, "Comment cannot be empty"],
+        maxLength: [500, "Comment cannot exceed 500 characters"],
+    },
+    commentedAt: {
+        type: Date,
+        default: Date.now,
+    }
+});
+
+const articleModel = mongoose.model('article', articleSchema);
+const commentModel = mongoose.model('Comment', commentSchema);
+
+module.exports = {
+    articleModel,
+    commentModel
+};

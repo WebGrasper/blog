@@ -1,4 +1,4 @@
-const articleModel = require('../Models/articleModel');
+const {articleModel, commentModel} = require('../Models/articleModel');
 const ErrorHandler = require("../utils/errorHandler");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 const { uploadImagesViaImageKit } = require('../utils/imageKit');
@@ -19,7 +19,6 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     for (let i in ImageArray) {
         url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname);
     }
-
     /* Creating new document.*/
     let article = await articleModel.create({
         title,
@@ -36,6 +35,39 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
         article,
     })
 });
+
+module.exports.addComment = catchAsyncError(async (req, res, next) =>{
+    let comment = await commentModel.create({
+        articleID: req.query.articleID,
+        commenterID: req.user.id,
+        commentBody: req.body.commentBody,
+    });
+
+    if (!comment) {
+        return next(new ErrorHandler(302, "Comment cannot added. Please try again."));
+    }
+
+    res.status(200).json({
+        success: true,
+        message:"Comment added successfully."
+    })
+})
+
+module.exports.getComments = catchAsyncError(async (req, res, next) =>{
+
+    let comments = await commentModel.find({
+        articleID: req.query.articleID,
+    });
+    
+    if (!comments) {
+        return next(new ErrorHandler(302, "Comments cannot fetched. Please try again."));
+    }
+
+    res.status(200).json({
+        success: true,
+        comments
+    })
+})
 
 module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
     

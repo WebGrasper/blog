@@ -19,10 +19,12 @@ dotenv.config({ path: ".env" });
 app.use(cookieParser());
 
 // Enable CORS for making policies.
-app.use(cors({
-  origin: ['https://webgrasper.vercel.app', 'http://65.21.198.80:3000', 'https://stashify-app.vercel.app'],
-  credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
-}));
+// app.use(cors({
+//   origin: ['https://webgrasper.vercel.app', 'http://65.21.198.80:3000', 'https://stashify-app.vercel.app'],
+//   credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
+// }));
+
+app.use(cors());
 
 //body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());
