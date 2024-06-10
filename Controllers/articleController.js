@@ -8,10 +8,12 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     let ImageArray = req.files;
     let url = [];
 
-    /* Checking image size. Don't allow if size is greater than 1 MB of each image.*/
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
+
     for (let i in ImageArray) {
-        if (ImageArray[i].size > 1000000) {
-            return next(new ErrorHandler(413, "Image size is greater than 1 MB."));
+        const imageSize = ImageArray[i].size;
+        if (imageSize > MAX_IMAGE_SIZE) {
+            return next(new ErrorHandler(413, "Image size is greater than 5 MB."));
         }
     }
 
@@ -32,6 +34,7 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     }
     res.status(200).json({
         success: true,
+        message:"Article created successfully.",
         article,
     })
 });
