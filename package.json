@@ -1,0 +1,37 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "The blog website using mern",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "build": "echo 'build script executed'"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "googleapis": "^134.0.0",
+    "imagekit": "^4.1.2",
+    "joi": "^17.7.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.8.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohdamaan570/blog.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/mohdamaan570/blog/issues"
+  },
+  "homepage": "https://github.com/mohdamaan570/blog#readme"
+}
