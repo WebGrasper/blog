@@ -11,9 +11,9 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
 
     // Check for duplicate title
-    const existingArticle = await articleModel.findOne({ email: req.body.title });
+    const existingArticle = await articleModel.findOne({ title: req.body.title });
     if (existingArticle) {
-        return next(new ErrorHandler(302, "Duplicate articles cannot be added."));
+        return next(new ErrorHandler(302, "Duplicate article cannot be added."));
     }
 
     for (let i in ImageArray) {
