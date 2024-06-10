@@ -24,7 +24,11 @@ app.use(cookieParser());
 //   credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
 // }));
 
-app.use(cors());
+// Enable CORS for all origins
+app.use(cors({
+  origin: '*',
+  credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
+}));
 
 //body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());
