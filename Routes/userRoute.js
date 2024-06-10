@@ -16,7 +16,7 @@ router.route('/logout').put(logout);
 router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
 router.route('/updateMyDetails/:token').put(isAuthenticated, updateMyDetails);
 router.route('/updateMyAvatar/:token').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
-router.route('/getSingleUserDetails/:id').get(isAuthenticated, isAuthorizedUser,getSingleUserDetails);
+router.route('/getSingleUserDetails').get(getSingleUserDetails);
 router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);
 router.route('/forgetPassword').post(forgetPassword);

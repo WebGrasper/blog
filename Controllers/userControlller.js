@@ -148,7 +148,11 @@ module.exports.getAllUserDetails = catchAsyncError(async (req, res, next) => {
 //Getting single user detail using ObjectID.
 module.exports.getSingleUserDetails = catchAsyncError(
   async (req, res, next) => {
-    let user = await userModel.findById(req.params.id, { password: 0 });
+    console.log(req.query.creatorID);
+    let user = await userModel.findById(
+      { _id: req.query.creatorID },
+      { password: 0 }
+    );
     if (!user) {
       return next(new ErrorHandler(404, "The user not found!"));
     }
@@ -304,28 +308,20 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
 module.exports.getCommenters = catchAsyncError(async (req, res, next) => {
   const { commenterIds } = req.body;
   if (!Array.isArray(commenterIds) || commenterIds.length === 0) {
+    return next(new ErrorHandler(400, "Invalid commenters IDs."));
+  }
+  const commenters = await userModel.find(
+    {
+      _id: { $in: commenterIds },
+    },
+    "username avatar"
+  );
+
+  if (!commenters) {
     return next(
-      new ErrorHandler(
-        400,
-        "Invalid commenters IDs."
-      )
+      new ErrorHandler(404, "Failed to fetch details. Please try again.")
     );
   }
-    const commenters = await userModel.find(
-      {
-        _id: { $in: commenterIds },
-      },
-      "username avatar"
-    );
 
-    if (!commenters) {
-      return next(
-        new ErrorHandler(
-          404,
-          "Failed to fetch details. Please try again."
-        )
-      );
-    }
-
-    res.status(200).json({ success: true, commenters });
+  res.status(200).json({ success: true, commenters });
 });
