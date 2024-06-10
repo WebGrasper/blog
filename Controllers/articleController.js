@@ -96,6 +96,28 @@ module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
     })
 })
 
+module.exports.viewsIncrementer = catchAsyncError(async (req, res, next) => {
+        // Find the article by articleID in the request query
+        const article = await articleModel.findOne({ _id: req.query.articleID });
+    
+        // If article not found, return an error
+        if (!article) {
+            return next(new ErrorHandler(404, "Article not found"));
+        }
+    
+        // Increment the impressions attribute by one
+        article.impressions = (article.impressions || 0) + 1;
+    
+        // Save the updated article
+        await article.save();
+    
+        // Send a success response with the updated article
+        res.status(200).json({
+            success: true,
+            message: `Current views are ${article?.impressions}`,
+        });
+})
+
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.find();
     if (!article.length) {
