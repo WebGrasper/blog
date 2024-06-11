@@ -28,6 +28,7 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
       email: email,
       password: password,
       role: role,
+      avatar:'https://ik.imagekit.io/94nzrpaat/webgrasper-user-avatars/default-user-avatar.png?updatedAt=1718087648181'
     },
     { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true }
   );
