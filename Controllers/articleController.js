@@ -129,6 +129,37 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
+module.exports.dailyArticles = catchAsyncError(async (req, res, next) => {
+
+    const limit = parseInt(req.query.limit); // Default to 4 if limit is not provided
+
+    // Find the most recent 8 articles
+    let articles = await articleModel.find().sort({ createdAt: -1 }).limit(limit);
+    if (!articles.length) {
+        return next(new ErrorHandler(404, "Articles not available!"));
+    }
+    res.status(200).json({
+        success: true,
+        articles,
+    });
+});
+
+module.exports.trendingArticles = catchAsyncError(async (req, res, next) => {
+    const limit = parseInt(req.query.limit); // Default to 4 if limit is not provided
+
+    // Find top 4 articles sorted by impressions in descending order
+    let articles = await articleModel.find().sort({ impressions: -1 }).limit(limit);
+
+    if (!articles.length) {
+        return next(new ErrorHandler(404, "Articles not available!"));
+    }
+
+    res.status(200).json({
+        success: true,
+        articles,
+    });
+});
+
 //This API is only working for stashify blog webApp
 module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     let { title } = req.params;
