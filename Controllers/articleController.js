@@ -131,13 +131,14 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
 
 module.exports.dailyArticles = catchAsyncError(async (req, res, next) => {
 
-    const limit = parseInt(req.query.limit); // Default to 4 if limit is not provided
+    const limit = parseInt(req.query.limit); // Default to 8 if limit is not provided
 
     // Find the most recent 8 articles
     let articles = await articleModel.find().sort({ createdAt: -1 }).limit(limit);
     if (!articles.length) {
         return next(new ErrorHandler(404, "Articles not available!"));
     }
+    console.log(articles);
     res.status(200).json({
         success: true,
         articles,
