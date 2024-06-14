@@ -28,7 +28,8 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
       email: email,
       password: password,
       role: role,
-      avatar:'https://ik.imagekit.io/94nzrpaat/webgrasper-user-avatars/default-user-avatar.png?updatedAt=1718087648181'
+      avatar:
+        "https://ik.imagekit.io/94nzrpaat/webgrasper-user-avatars/default-user-avatar.png?updatedAt=1718087648181",
     },
     { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true }
   );
@@ -305,6 +306,25 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
   });
 });
 
+module.exports.getArticlesCreators = catchAsyncError(async (req, res, next) => {
+  const { creators } = req.body;
+  if (!Array.isArray(creators) || creators.length === 0) {
+    return next(new ErrorHandler(400, "Invalid creators IDs."));
+  }
+  const creators_data = await userModel.find(
+    {
+      _id: { $in: creators },
+    },
+    "username avatar"
+  );
+  if (!creators_data) {
+    return next(
+      new ErrorHandler(404, "Failed to fetch details. Please try again.")
+    );
+  }
+  res.status(200).json({ success: true, creators_data });
+});
+
 module.exports.getCommenters = catchAsyncError(async (req, res, next) => {
   const { commenterIds } = req.body;
   if (!Array.isArray(commenterIds) || commenterIds.length === 0) {
@@ -322,6 +342,5 @@ module.exports.getCommenters = catchAsyncError(async (req, res, next) => {
       new ErrorHandler(404, "Failed to fetch details. Please try again.")
     );
   }
-
   res.status(200).json({ success: true, commenters });
 });
