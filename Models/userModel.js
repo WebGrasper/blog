@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  dob: String,
+  bio:String,
+  street: String,
+  city: String,
+  state: String,
+  country: String,
 });
 
 userSchema.methods.getresetPasswordToken = function () {

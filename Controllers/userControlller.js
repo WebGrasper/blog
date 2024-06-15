@@ -113,7 +113,7 @@ module.exports.signin = catchAsyncError(async (req, res, next) => {
 module.exports.logout = catchAsyncError(async (req, res, next) => {
   const tokenInHeader = req.headers.authorization.split(" ")[1]; // Extract token from headers
   const token = req.cookies.token;
-  console.log(tokenInHeader, token);
+  // console.log(tokenInHeader, token);
   if (tokenInHeader === token) {
     res
       .status(200)
@@ -174,21 +174,21 @@ module.exports.getMyDetails = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.updateMyDetails = catchAsyncError(async (req, res, next) => {
+
   await userModel
     .findByIdAndUpdate(req.user.id, req.body, {
       new: true,
       runValidators: true,
     })
-    .then((article) => {
-      console.log(article);
+    .then((user) => {
       res.status(200).json({
         success: true,
-        message: "Update user details successfully!",
+        message: "Details updated successfully.",
       });
     })
     .catch((err) => {
       return next(
-        new ErrorHandler(302, `${err.errors.username || err.errors.email}`)
+        new ErrorHandler(302, "Details updation failed.")
       );
     });
 });
@@ -282,7 +282,7 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
     resetPasswordToken,
     resetPasswordExpire: { $gt: currentTime },
   });
-  console.log(user, resetPasswordToken, currentTime);
+  // console.log(user, resetPasswordToken, currentTime);
   if (!user) {
     return next(new ErrorHandler(401, "The token is invalid or expired!"));
   }
@@ -294,9 +294,9 @@ module.exports.resetPassword = catchAsyncError(async (req, res, next) => {
       )
     );
   }
-  console.log(req.body.password);
+  // console.log(req.body.password);
   user.password = await bcryptjs.hash(req.body.password, 12);
-  console.log(user.password);
+  // console.log(user.password);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
   await user.save({ validateBeforeSave: false });
