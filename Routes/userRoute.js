@@ -15,7 +15,7 @@ router.route('/signin').post(signin);
 router.route('/logout').put(logout);
 router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
 router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
-router.route('/updateMyAvatar/:token').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
+router.route('/updateMyAvatar').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
 router.route('/getSingleUserDetails').get(getSingleUserDetails);
 router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);

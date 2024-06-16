@@ -4,10 +4,14 @@ const userModel = require("../Models/userModel");
 const sendToken = require("../utils/jwtToken");
 const ErrorHandler = require("../utils/errorHandler");
 const sendEmail = require("../utils/sendEmail");
-const { uploadImagesViaImageKit } = require("../utils/imageKit");
+const {
+  uploadImagesViaImageKit,
+  deleteImagesViaImageKit,
+} = require("../utils/imageKit");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const error = require("../Middlewares/error");
+const assert = require("assert").strict;
 
 module.exports.signup = catchAsyncError(async (req, res, next) => {
   // Checking if requesting user is already exists via email.
@@ -174,7 +178,6 @@ module.exports.getMyDetails = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.updateMyDetails = catchAsyncError(async (req, res, next) => {
-
   await userModel
     .findByIdAndUpdate(req.user.id, req.body, {
       new: true,
@@ -187,17 +190,24 @@ module.exports.updateMyDetails = catchAsyncError(async (req, res, next) => {
       });
     })
     .catch((err) => {
-      return next(
-        new ErrorHandler(302, "Details updation failed.")
-      );
+      return next(new ErrorHandler(302, "Details updation failed."));
     });
 });
 
 module.exports.updateMyAvatar = catchAsyncError(async (req, res, next) => {
   const avatarData = req.file;
+  let folderPath = "/WG-USERS-PROFILE-IMAGES/";
+
+  let { email } = await userModel.findById(req.user.id).select("email");
+
+  let subFolderPath = email.split('@')[0];
+
+  let mainDestination = folderPath + subFolderPath;
+
   let url = await uploadImagesViaImageKit(
     avatarData.buffer,
-    avatarData.originalname
+    avatarData.originalname,
+    mainDestination
   );
   let user = await userModel.findByIdAndUpdate(
     req.user.id,
@@ -211,7 +221,7 @@ module.exports.updateMyAvatar = catchAsyncError(async (req, res, next) => {
   }
   res.status(201).json({
     success: true,
-    message: `Profile picture update successfully ${url}`,
+    message: `Profile image updated successfully.`,
   });
 });
 

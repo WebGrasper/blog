@@ -23,9 +23,10 @@ module.exports.createArticle = catchAsyncError(async (req, res, next) => {
         }
     }
 
+    let folderPath = '/WG-ARTICLES-IMAGES/';
     /* Uploading each image to imageKit.io*/
     for (let i in ImageArray) {
-        url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname);
+        url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname, folderPath);
     }
     /* Creating new document.*/
     let article = await articleModel.create({
