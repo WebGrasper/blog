@@ -30,7 +30,7 @@ module.exports.uploadImagesViaImageKit = async (
     })
     .catch((err) => {
         console.log(err);
-      // return next(new ErrorHandler(302, `Image cannot upload`));
+      return next(new ErrorHandler(302, `Image cannot upload`));
     });
   return data.url;
 };
