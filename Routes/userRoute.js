@@ -1,30 +1,33 @@
 const express = require('express');
-const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar, getsingleuser, confirmRegistration, testToken, getCommenters, getArticlesCreators} = require("../Controllers/userControlller");
+const {
+  signin, signup, logout, getAllUserDetails, getSingleUserDetails,
+  getMyDetails, updatePassword, forgetPassword, resetPassword,
+  updateMyDetails, updateMyAvatar, getCommenters, getArticlesCreators,
+  confirmRegistration,
+} = require('../Controllers/userControlller');
 const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
+const {
+  validateSignup, validateSignin, validateUpdatePassword,
+  validateForgetPassword, validateResetPassword,
+} = require('../Middlewares/validators');
 const multer = require('multer');
 
-//Multer is used to handle the form-data e.g., images, files,etc.
-const upload = multer();
-
-//express router/
+const upload = multer({ limits: { fileSize: 2 * 1024 * 1024 } });
 const router = express.Router();
 
-router.route('/signup').post(signup);
-router.route('/confirmRegistration').post(confirmRegistration);
-router.route('/signin').post(signin);
-router.route('/logout').put(logout);
-router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
-router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
-router.route('/updateMyAvatar').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
-router.route('/getSingleUserDetails').get(getSingleUserDetails);
-router.route('/getAllUserDetails').get(isAuthenticated,isAuthorizedUser, getAllUserDetails);
-router.route('/updatePassword').put(isAuthenticated, updatePassword);
-router.route('/forgetPassword').post(forgetPassword);
-router.route('/reset/password').put(resetPassword);
-router.route('/getCommenters').post(getCommenters);
-router.route('/getArticlesCreators').post(getArticlesCreators);
-
-router.route('/testToken').get(testToken);
-
+router.post('/signup', validateSignup, signup);
+router.post('/confirmRegistration', confirmRegistration);
+router.post('/signin', validateSignin, signin);
+router.put('/logout', logout);
+router.get('/getMyDetails', isAuthenticated, getMyDetails);
+router.put('/updateMyDetails', isAuthenticated, updateMyDetails);
+router.put('/updateMyAvatar', isAuthenticated, upload.single('avatar'), updateMyAvatar);
+router.get('/getSingleUserDetails', getSingleUserDetails);
+router.get('/getAllUserDetails', isAuthenticated, isAuthorizedUser, getAllUserDetails);
+router.put('/updatePassword', isAuthenticated, validateUpdatePassword, updatePassword);
+router.post('/forgetPassword', validateForgetPassword, forgetPassword);
+router.put('/reset/password', validateResetPassword, resetPassword);
+router.post('/getCommenters', getCommenters);
+router.post('/getArticlesCreators', getArticlesCreators);
 
 module.exports = router;

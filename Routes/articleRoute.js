@@ -1,22 +1,39 @@
-const express = require("express");
-const { createArticle, getArticles, updateArticle, deleteArticle, getSingleArticle, searchQueryArticles, filterArticles, search, addComment, getComments, viewsIncrementer, dailyArticles, trendingArticles } = require("../Controllers/articleController");
-const { isAuthenticated, isAuthorizedUser } = require("../Middlewares/auth");
-const multer = require("multer");
-const upload = multer();
+const express = require('express');
+const {
+  createArticle, getArticles, updateArticle, deleteArticle,
+  getSingleArticle, filterArticles, search, addComment,
+  getComments, viewsIncrementer, dailyArticles, trendingArticles,
+} = require('../Controllers/articleController');
+const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
+const {
+  validateCreateArticle,
+  validateAddComment,
+  validateFilterArticles,
+} = require('../Middlewares/validators');
+const multer = require('multer');
+
+const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } });
 const router = express.Router();
 
-router.route('/createArticle').post(isAuthenticated, isAuthorizedUser, upload.array('articleImage',2), createArticle);
-router.route('/addComment').post(isAuthenticated, addComment);
-router.route('/getComments').get(getComments);
-router.route('/viewsIncrementer').get(viewsIncrementer);
-router.route('/getSingleArticle/:title').get(getSingleArticle);
-router.route('/getArticles').get(getArticles);
-router.route('/dailyArticles').get(dailyArticles);
-router.route('/trendingArticles').get(trendingArticles);
-router.route('/search').get(search);
-// router.route('/searchArticles/:title').get(searchQueryArticles);
-router.route('/filterArticles').post(filterArticles);
-router.route('/updateArticle/:id').put(isAuthenticated, isAuthorizedUser, updateArticle);
-router.route('/deleteArticle/:id').delete(isAuthenticated, isAuthorizedUser, deleteArticle);
+router.post(
+  '/createArticle',
+  isAuthenticated,
+  isAuthorizedUser,
+  upload.array('articleImage', 2),
+  createArticle
+);
+
+router.post('/addComment', isAuthenticated, validateAddComment, addComment);
+router.post('/filterArticles', validateFilterArticles, filterArticles);
+router.put('/updateArticle/:id', isAuthenticated, isAuthorizedUser, updateArticle);
+router.delete('/deleteArticle/:id', isAuthenticated, isAuthorizedUser, deleteArticle);
+
+router.get('/getComments', getComments);
+router.get('/viewsIncrementer', viewsIncrementer);
+router.get('/getSingleArticle/:title', getSingleArticle);
+router.get('/getArticles', getArticles);
+router.get('/dailyArticles', dailyArticles);
+router.get('/trendingArticles', trendingArticles);
+router.get('/search', search);
 
 module.exports = router;
