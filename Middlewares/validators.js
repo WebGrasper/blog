@@ -38,7 +38,7 @@ exports.validateCreateArticle = validate(
       .max(300)
       .custom((value, helpers) => {
         const words = value.trim().split(/\s+/).length;
-        if (words <= 9 || words >= 26) {
+        if (words < 10 || words > 25) {
           return helpers.error('any.invalid');
         }
         return value;

@@ -3,6 +3,8 @@ const ErrorHandler = require('../utils/errorHandler');
 const { catchAsyncError } = require('../Middlewares/catchAsyncError');
 const { uploadImagesViaImageKit } = require('../utils/imageKit');
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 module.exports.createArticle = catchAsyncError(async (req, res, next) => {
   let { title, category } = req.body;
   let description;
@@ -107,7 +109,7 @@ module.exports.trendingArticles = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.search = catchAsyncError(async (req, res, next) => {
-  const query = decodeURIComponent(req.query.name || '').replace(/-/g, ' ');
+  const query = escapeRegex(decodeURIComponent(req.query.name || '').replace(/-/g, ' '));
   const articles = await articleModel.find({
     $or: [
       { title: { $regex: `^${query}`, $options: 'i' } },
@@ -122,7 +124,7 @@ module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
   const { data } = req.body;
   let articles;
   if (typeof data === 'string') {
-    articles = await articleModel.find({ title: { $regex: `^${data}`, $options: 'i' } });
+    articles = await articleModel.find({ title: { $regex: `^${escapeRegex(data)}`, $options: 'i' } });
   } else {
     const catMap = { Food: data.food, Travel: data.travel, Politics: data.politics, Technology: data.technology };
     const filter = { $or: Object.keys(catMap).filter((k) => catMap[k] !== null).map((k) => ({ category: k })) };

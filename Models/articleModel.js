@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const validateTitleWords = (value) => {
   const wordCount = value.trim().split(/\s+/).length;
-  return wordCount > 9 && wordCount < 26;
+  return wordCount >= 10 && wordCount <= 25;
 };
 
 const articleSchema = new mongoose.Schema(
