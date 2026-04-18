@@ -1,23 +1,17 @@
 const nodemailer = require("nodemailer");
-const {google} = require('googleapis');
 
 const sendEmail = async function(data,next){
 
-    const oAuth2Client = new google.auth.OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI)
-    oAuth2Client.setCredentials({refresh_token: process.env.REFRESH_TOKEN})
-
     try{
-        const accessToken = await oAuth2Client.getAccessToken();
         
         const transporter = nodemailer.createTransport({
             service: process.env.SMTP_SERVICE,
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT,
+            secure: false,
             auth:{
-                type: 'OAuth2',
                 user: process.env.SMTP_USER,
-                clientId: process.env.CLIENT_ID,
-                clientSecret: process.env.CLIENT_SECRET,
-                refreshToken: process.env.REFRESH_TOKEN,
-                accessToken: accessToken
+                pass: process.env.SMTP_PASSWORD
             }
         });
         const mailDetails = {
@@ -28,8 +22,7 @@ const sendEmail = async function(data,next){
         }
         
         const result = await transporter.sendMail(mailDetails);
-        // console.log(result);
-        return result
+        return result;
     } catch(e){
         return e;
     }
