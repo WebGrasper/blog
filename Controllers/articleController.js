@@ -130,6 +130,28 @@ module.exports.getArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
+module.exports.getMyArticles = catchAsyncError(async (req, res, next) => {
+    let articles = await articleModel.find({ createdBy: req.user.id });
+    if (!articles) {
+        return next(new ErrorHandler(404, "Articles not available!"));
+    }
+    res.status(200).json({
+        success: true,
+        articles,
+    })
+})
+
+module.exports.getArticleById = catchAsyncError(async (req, res, next) => {
+    const article = await articleModel.findById(req.params.id);
+    if (!article) {
+        return next(new ErrorHandler(404, "Article not found!"));
+    }
+    res.status(200).json({
+        success: true,
+        article,
+    })
+})
+
 module.exports.dailyArticles = catchAsyncError(async (req, res, next) => {
 
     const limit = parseInt(req.query.limit); // Default to 8 if limit is not provided
@@ -236,21 +258,57 @@ module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.updateArticle = catchAsyncError(async (req, res, next) => {
-    let article = await articleModel.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    let article = await articleModel.findById(req.params.id);
     if (!article) {
-        return next(new ErrorHandler(302, "Article cannot update!"));
+        return next(new ErrorHandler(404, "Article not found!"));
     }
+
+    if (article.createdBy.toString() !== req.user.id) {
+        return next(new ErrorHandler(403, "You are not authorized to update this article!"));
+    }
+
+    let { title, description, category } = JSON.parse(JSON.stringify(req.body));
+    let updateData = { title, description, category };
+
+    let ImageArray = req.files;
+    if (ImageArray && ImageArray.length > 0) {
+        const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+        let url = [];
+        for (let i in ImageArray) {
+            const imageSize = ImageArray[i].size;
+            if (imageSize > MAX_IMAGE_SIZE) {
+                return next(new ErrorHandler(413, "Image size is greater than 5 MB."));
+            }
+        }
+
+        let folderPath = '/WG-ARTICLES-IMAGES/';
+        for (let i in ImageArray) {
+            url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname, folderPath);
+        }
+        updateData.articleImage = url;
+    }
+
+    article = await articleModel.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+    
     res.status(200).json({
         success: true,
         message: "item update successfully",
+        article
     })
 })
 
 module.exports.deleteArticle = catchAsyncError(async (req, res, next) => {
-    let articleDelete = await articleModel.findByIdAndRemove(req.params.id);
-    if (!articleDelete) {
-        return next(new ErrorHandler(302, `Resources not found!`));
+    let article = await articleModel.findById(req.params.id);
+    if (!article) {
+        return next(new ErrorHandler(404, `Article not found!`));
     }
+
+    if (article.createdBy.toString() !== req.user.id) {
+        return next(new ErrorHandler(403, "You are not authorized to delete this article!"));
+    }
+
+    await article.remove();
+
     res.status(200).json({
         success: true,
         message: "item delete successfully",
