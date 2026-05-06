@@ -2,6 +2,7 @@ const {articleModel, commentModel} = require('../Models/articleModel');
 const ErrorHandler = require("../utils/errorHandler");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
 const { uploadImagesViaImageKit } = require('../utils/imageKit');
+const APIFeatures = require('../utils/apiFeatures');
 
 module.exports.createArticle = catchAsyncError(async (req, res, next) => {
     let { title, description, category } = JSON.parse(JSON.stringify(req.body));
@@ -120,26 +121,57 @@ module.exports.viewsIncrementer = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
-    let article = await articleModel.find();
-    if (!article.length) {
+    const totalCount = await articleModel.countDocuments();
+    
+    const features = new APIFeatures(articleModel.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const articles = await features.query;
+    
+    if (!articles.length) {
         return next(new ErrorHandler(404, "Articles not available!"));
     }
+
     res.status(200).json({
         success: true,
-        article,
-    })
-})
+        totalCount,
+        limit: req.query.limit * 1 || 10,
+        page: req.query.page * 1 || 1,
+        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
+        articles,
+    });
+});
 
 module.exports.getMyArticles = catchAsyncError(async (req, res, next) => {
-    let articles = await articleModel.find({ createdBy: req.user.id });
+    // Add createdBy to the query params so APIFeatures can filter it
+    req.query.createdBy = req.user.id;
+
+    const totalCount = await articleModel.countDocuments({ createdBy: req.user.id });
+    
+    const features = new APIFeatures(articleModel.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const articles = await features.query;
+
     if (!articles) {
         return next(new ErrorHandler(404, "Articles not available!"));
     }
+
     res.status(200).json({
         success: true,
+        totalCount,
+        limit: req.query.limit * 1 || 10,
+        page: req.query.page * 1 || 1,
+        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
         articles,
-    })
-})
+    });
+});
 
 module.exports.getArticleById = catchAsyncError(async (req, res, next) => {
     const article = await articleModel.findById(req.params.id);
@@ -153,26 +185,43 @@ module.exports.getArticleById = catchAsyncError(async (req, res, next) => {
 })
 
 module.exports.dailyArticles = catchAsyncError(async (req, res, next) => {
+    const totalCount = await articleModel.countDocuments();
+    
+    const features = new APIFeatures(articleModel.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
 
-    const limit = parseInt(req.query.limit); // Default to 8 if limit is not provided
+    const articles = await features.query;
 
-    // Find the most recent 8 articles
-    let articles = await articleModel.find().sort({ createdAt: -1 }).limit(limit);
     if (!articles.length) {
         return next(new ErrorHandler(404, "Articles not available!"));
     }
-    console.log(articles);
+
     res.status(200).json({
         success: true,
+        totalCount,
+        limit: req.query.limit * 1 || 10,
+        page: req.query.page * 1 || 1,
+        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
         articles,
     });
 });
 
 module.exports.trendingArticles = catchAsyncError(async (req, res, next) => {
-    const limit = parseInt(req.query.limit); // Default to 4 if limit is not provided
+    const totalCount = await articleModel.countDocuments();
+    
+    // Custom sort for trending
+    req.query.sort = '-impressions';
 
-    // Find top 4 articles sorted by impressions in descending order
-    let articles = await articleModel.find().sort({ impressions: -1 }).limit(limit);
+    const features = new APIFeatures(articleModel.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const articles = await features.query;
 
     if (!articles.length) {
         return next(new ErrorHandler(404, "Articles not available!"));
@@ -180,6 +229,10 @@ module.exports.trendingArticles = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
+        totalCount,
+        limit: req.query.limit * 1 || 10,
+        page: req.query.page * 1 || 1,
+        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
         articles,
     });
 });
@@ -202,27 +255,45 @@ module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
     })
 })
 
-module.exports.search = catchAsyncError(async (req, res, next)=>{
+module.exports.search = catchAsyncError(async (req, res, next) => {
     let encodedTitle = req.query.name;
-
     const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
 
-    let articles = await articleModel.find({
+    // Prepare a base query that matches title OR category from the search term
+    const baseQuery = {
         $or: [
-        { title: { $regex: `^${articleTitleFromURL}`, $options: "i" } },
-        { category: { $regex: `^${articleTitleFromURL}`, $options: "i" } }
-    ]});
+            { title: { $regex: articleTitleFromURL, $options: "i" } },
+            { category: { $regex: articleTitleFromURL, $options: "i" } }
+        ]
+    };
+
+    // We can still pass additional filters in req.query (e.g., category=Technology)
+    // and APIFeatures will combine them with our base query.
     
-    if(!articles.length){
-        if (!articles.length) {
-            return next(new ErrorHandler(404, "Article not available!"));
-        }    
+    // First, get total count for this search
+    const totalCount = await articleModel.countDocuments(baseQuery);
+
+    const features = new APIFeatures(articleModel.find(baseQuery), req.query)
+        .filter() // This will apply additional filters from req.query (excluding name/sort/page/limit)
+        .sort()
+        .limitFields()
+        .paginate();
+
+    const articles = await features.query;
+    
+    if (!articles.length) {
+        return next(new ErrorHandler(404, "Article not available!"));
     }
+
     res.status(200).json({
         success: true,
+        totalCount,
+        limit: req.query.limit * 1 || 10,
+        page: req.query.page * 1 || 1,
+        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
         articles,
     });
-})
+});
 
 module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
     const { data } = req.body;
