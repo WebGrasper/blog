@@ -1,4 +1,4 @@
-const { uploadImagesViaImageKit, deleteImagesViaImageKit } = require('../utils/imageKit');
+const imageKit = require('../utils/imageKit');
 const { FOLDERS, MAX_IMAGE_SIZE } = require('../config/constants');
 const ErrorHandler = require('../utils/errorHandler');
 
@@ -19,7 +19,7 @@ const imageService = {
         }
 
         const uploadPromises = files.map(file => 
-            uploadImagesViaImageKit(file.buffer, file.originalname, folder)
+            imageKit.uploadImagesViaImageKit(file.buffer, file.originalname, folder)
         );
 
         return await Promise.all(uploadPromises);
@@ -34,7 +34,7 @@ const imageService = {
         const subFolderPath = email.split('@')[0];
         const destination = `${FOLDERS.AVATARS}${subFolderPath}`;
         
-        return await uploadImagesViaImageKit(file.buffer, file.originalname, destination);
+        return await imageKit.uploadImagesViaImageKit(file.buffer, file.originalname, destination);
     },
 
     /**
@@ -42,7 +42,7 @@ const imageService = {
      */
     deleteImages: async (fileIds) => {
         if (!fileIds || fileIds.length === 0) return;
-        return await deleteImagesViaImageKit(fileIds);
+        return await imageKit.deleteImagesViaImageKit(fileIds);
     }
 };
 

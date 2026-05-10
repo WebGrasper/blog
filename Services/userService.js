@@ -20,17 +20,21 @@ const userService = {
         }
 
         // Create or update unverified user
-        const user = await userModel.findOneAndUpdate(
-            { email },
-            { 
-                username, 
-                email, 
-                password, // Will be hashed by pre-save hook
+        let user = await userModel.findOne({ email });
+        if (!user) {
+            user = await userModel.create({
+                username,
+                email,
+                password,
                 role,
                 avatar: "https://ik.imagekit.io/94nzrpaat/webgrasper-user-avatars/default-user-avatar.png?updatedAt=1718087648181"
-            },
-            { upsert: true, new: true, runValidators: true }
-        );
+            });
+        } else {
+            user.username = username;
+            user.password = password;
+            user.role = role;
+            // No save here, we do it below after getOtp
+        }
 
         const otp = user.getOtp();
         await user.save({ validateBeforeSave: false });
