@@ -5,60 +5,62 @@ const dotenv = require("dotenv");
 const database = require("./config/db");
 const userRoute = require("./Routes/userRoute");
 const articleRoute = require("./Routes/articleRoute");
+const ErrorHandler = require("./utils/errorHandler");
 const error = require("./Middlewares/error");
 const cors = require("cors");
 
 
+const helmet = require("helmet");
+const { CORS_WHITELIST } = require("./config/constants");
+
 const app = express();
 const port = process.env.PORT || 7860;
 
-//dotenv config.
+// dotenv config.
 dotenv.config({ path: ".env" });
 
-//Enable cookie-parser.
+// Security headers.
+app.use(helmet());
+
+// Enable cookie-parser.
 app.use(cookieParser());
 
-// Enable CORS for making policies.
-// app.use(cors({
-//   origin: ['https://webgrasper.vercel.app', 'http://65.21.198.80:3000', 'https://stashify-app.vercel.app'],
-//   credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
-// }));
-
-// Enable CORS for all origins
+// Enable CORS with whitelist.
 app.use(cors({
-  origin: '*',
-  credentials: true, // Allow credentials (e.g., cookies) to be sent with requests
+  origin: function (origin, callback) {
+    if (!origin || CORS_WHITELIST.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 
-//body-parser to parse the data from body in POST method.
+// body-parser to parse the data from body in POST method.
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//calling database for initialization.
+// calling database for initialization.
 database();
 
-//Using router.
-app.use('/app/v1',userRoute);
-app.use('/app/v2',articleRoute);
+// Using router.
+app.use('/app/v1', userRoute);
+app.use('/app/v2', articleRoute);
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
   res.status(200).json({
-    success:true,
-    message:`Server is working at port ${port}`
+    success: true,
+    message: `Server is working at port ${port}`
   })
 })
 
-//Handling error when user request for invalid route.
-app.all('*',(req,res)=>{
-  let statusCode = err.statusCode || 500;
-  return res.status(statusCode).json({
-    success: false,
-    message: `Requested URL ${req.path} not found!`,
-    stack: err.stack,
-  });
+// Handling error when user request for invalid route.
+app.all('*', (req, res, next) => {
+  next(new ErrorHandler(404, `Requested URL ${req.path} not found!`));
 });
 
-//NodeJS uncaught error handler.
+// NodeJS uncaught error handler.
 app.use(error);
 
 app.listen(port, () => {

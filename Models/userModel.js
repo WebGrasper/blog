@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const crypto = require("crypto");
+const bcryptjs = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -23,6 +24,7 @@ const userSchema = new mongoose.Schema({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,1024}$/,
       "The password should be minimum of 8 characters, which consist atleast one Upper, one Lower case alphabet, one number and one special character[!@#$%^&*].",
     ],
+    select: false, // Don't return password by default
   },
   otp: Number,
   otpExpiry: Date,
@@ -33,34 +35,38 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
   dob: String,
-  bio:String,
+  bio: String,
   street: String,
   city: String,
   state: String,
   country: String,
 });
 
+// Pre-save hook to hash password
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+  this.password = await bcryptjs.hash(this.password, 12);
+});
+
+// Compare password method
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcryptjs.compare(enteredPassword, this.password);
+};
+
 userSchema.methods.getresetPasswordToken = function () {
-  // let resetToken = crypto.randomBytes(32).toString("hex");
   let resetToken = Math.floor(100000 + Math.random() * 900000);
-  // this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   this.resetPasswordToken = resetToken;
-  // Calculate the current time in milliseconds since Unix epoch
-
   const newTime = new Date(Date.now() + 5.75 * 60 * 60 * 1000);
-
   this.resetPasswordExpire = newTime;
   return resetToken;
 };
 
 userSchema.methods.getOtp = function () {
-  // let resetToken = crypto.randomBytes(32).toString("hex");
   let get_otp = Math.floor(100000 + Math.random() * 900000);
-  // this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   this.otp = get_otp;
-  
   const newTime = new Date(Date.now() + 5.75 * 60 * 60 * 1000);
-
   this.otpExpiry = newTime;
   return get_otp;
 };

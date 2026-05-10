@@ -1,5 +1,5 @@
 const express = require('express');
-const { signin, signup, logout, getAllUserDetails, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar, getsingleuser, confirmRegistration, testToken, getCommenters, getArticlesCreators} = require("../Controllers/userControlller");
+const { signin, signup, logout, getSingleUserDetails, getMyDetails, updatePassword, forgetPassword, resetPassword, updateMyDetails, updateMyAvatar, confirmRegistration, getCommenters, getArticlesCreators } = require("../Controllers/userController");
 const { isAuthenticated, isAuthorizedUser } = require('../Middlewares/auth');
 const multer = require('multer');
 
@@ -17,14 +17,10 @@ router.route('/getMyDetails').get(isAuthenticated, getMyDetails);
 router.route('/updateMyDetails').put(isAuthenticated, updateMyDetails);
 router.route('/updateMyAvatar').put(isAuthenticated, upload.single('avatar'), updateMyAvatar);
 router.route('/getSingleUserDetails').get(getSingleUserDetails);
-router.route('/getAllUserDetails').get(isAuthenticated, getAllUserDetails);
 router.route('/updatePassword').put(isAuthenticated, updatePassword);
 router.route('/forgetPassword').post(forgetPassword);
 router.route('/reset/password').put(resetPassword);
 router.route('/getCommenters').post(getCommenters);
 router.route('/getArticlesCreators').post(getArticlesCreators);
-
-router.route('/testToken').get(testToken);
-
 
 module.exports = router;

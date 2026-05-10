@@ -1,5 +1,5 @@
 const express = require("express");
-const { createArticle, getArticles, updateArticle, deleteArticle, getSingleArticle, searchQueryArticles, filterArticles, search, addComment, getComments, viewsIncrementer, dailyArticles, trendingArticles, getMyArticles, getArticleById } = require("../Controllers/articleController");
+const { createArticle, getArticles, updateArticle, deleteArticle, getSingleArticle, search, addComment, getComments, viewsIncrementer, dailyArticles, trendingArticles, getMyArticles, getArticleById } = require("../Controllers/articleController");
 const { isAuthenticated, isAuthorizedUser } = require("../Middlewares/auth");
 const multer = require("multer");
 const upload = multer();
@@ -16,8 +16,6 @@ router.route('/getMyArticles').get(isAuthenticated, getMyArticles);
 router.route('/dailyArticles').get(dailyArticles);
 router.route('/trendingArticles').get(trendingArticles);
 router.route('/search').get(search);
-// router.route('/searchArticles/:title').get(searchQueryArticles);
-router.route('/filterArticles').post(filterArticles);
 router.route('/updateArticle/:id').put(isAuthenticated, upload.array('articleImage',2), updateArticle);
 router.route('/deleteArticle/:id').delete(isAuthenticated, deleteArticle);
 

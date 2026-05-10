@@ -1,332 +1,79 @@
-const {articleModel, commentModel} = require('../Models/articleModel');
-const ErrorHandler = require("../utils/errorHandler");
+const articleService = require("../Services/articleService");
+const imageService = require("../Services/imageService");
+const sendResponse = require("../utils/responseHandler");
 const { catchAsyncError } = require("../Middlewares/catchAsyncError");
-const { uploadImagesViaImageKit } = require('../utils/imageKit');
-const APIFeatures = require('../utils/apiFeatures');
+const { articleModel } = require('../Models/articleModel');
+const ErrorHandler = require("../utils/errorHandler");
+
+/**
+ * Article Controller - Handles request/response and delegates to Services
+ */
 
 module.exports.createArticle = catchAsyncError(async (req, res, next) => {
-    let { title, description, category } = JSON.parse(JSON.stringify(req.body));
-    let ImageArray = req.files;
-    let url = [];
+    // Upload images first
+    const urls = await imageService.uploadImages(req.files);
+    
+    const article = await articleService.createArticle({
+        ...req.body,
+        articleImage: urls
+    }, req.user.id);
 
-    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
-
-    // Check for duplicate title
-    const existingArticle = await articleModel.findOne({ title: req.body.title });
-    if (existingArticle) {
-        return next(new ErrorHandler(302, "Duplicate article cannot be added."));
-    }
-
-    for (let i in ImageArray) {
-        const imageSize = ImageArray[i].size;
-        if (imageSize > MAX_IMAGE_SIZE) {
-            return next(new ErrorHandler(413, "Image size is greater than 5 MB."));
-        }
-    }
-
-    let folderPath = '/WG-ARTICLES-IMAGES/';
-    /* Uploading each image to imageKit.io*/
-    for (let i in ImageArray) {
-        url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname, folderPath);
-    }
-    /* Creating new document.*/
-    let article = await articleModel.create({
-        title,
-        description,
-        category,
-        articleImage: url,
-        createdBy: req.user.id,
-    });
-    if (!article) {
-        return next(new ErrorHandler(302, "Article cannot created!"));
-    }
-    res.status(200).json({
-        success: true,
-        message:"Article created successfully.",
-        article,
-    })
+    sendResponse(res, 200, "Article created successfully.", { article });
 });
 
-module.exports.addComment = catchAsyncError(async (req, res, next) =>{
-    let comment = await commentModel.create({
-        articleID: req.query.articleID,
-        commenterID: req.user.id,
-        commentBody: req.body.commentBody,
-    });
+module.exports.addComment = catchAsyncError(async (req, res, next) => {
+    await articleService.addComment(req.query.articleID, req.user.id, req.body.commentBody);
+    sendResponse(res, 200, "Comment added successfully.");
+});
 
-    if (!comment) {
-        return next(new ErrorHandler(302, "Comment cannot added. Please try again."));
-    }
-
-    res.status(200).json({
-        success: true,
-        message:"Comment added successfully."
-    })
-})
-
-module.exports.getComments = catchAsyncError(async (req, res, next) =>{
-
-    let comments = await commentModel.find({
-        articleID: req.query.articleID,
-    });
-    
-    if (!comments) {
-        return next(new ErrorHandler(302, "Comments cannot fetched. Please try again."));
-    }
-
-    res.status(200).json({
-        success: true,
-        comments
-    })
-})
+module.exports.getComments = catchAsyncError(async (req, res, next) => {
+    const { commentModel } = require('../Models/articleModel');
+    const comments = await commentModel.find({ articleID: req.query.articleID });
+    sendResponse(res, 200, "Success", { comments });
+});
 
 module.exports.getSingleArticle = catchAsyncError(async (req, res, next) => {
-    
-    // Extract the title from the URL parameter
-    const encodedTitle = req.params.title;
-
-    // Decode the URL-encoded title
-    const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
-
+    const articleTitleFromURL = decodeURIComponent(req.params.title).replace(/-/g, ' ');
     const article = await articleModel.findOne({ title: articleTitleFromURL });
+    
     if (!article) {
         return next(new ErrorHandler(404, "Article not available!"));
     }
-    res.status(200).json({
-        success: true,
-        article,
-    })
-})
+    sendResponse(res, 200, "Success", { article });
+});
 
 module.exports.viewsIncrementer = catchAsyncError(async (req, res, next) => {
-        // Find the article by articleID in the request query
-        const article = await articleModel.findOne({ _id: req.query.articleID });
-    
-        // If article not found, return an error
-        if (!article) {
-            return next(new ErrorHandler(404, "Article not found"));
-        }
-    
-        // Increment the impressions attribute by one
-        article.impressions = (article.impressions || 0) + 1;
-    
-        // Save the updated article
-        await article.save();
-    
-        // Send a success response with the updated article
-        res.status(200).json({
-            success: true,
-            message: `Current views are ${article?.impressions}`,
-        });
-})
+    const impressions = await articleService.incrementViews(req.query.articleID);
+    sendResponse(res, 200, `Current views are ${impressions}`);
+});
 
 module.exports.getArticles = catchAsyncError(async (req, res, next) => {
-    const totalCount = await articleModel.countDocuments();
-    
-    const features = new APIFeatures(articleModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const articles = await features.query;
-    
-    if (!articles.length) {
-        return next(new ErrorHandler(404, "Articles not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        totalCount,
-        limit: req.query.limit * 1 || 10,
-        page: req.query.page * 1 || 1,
-        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
-        articles,
-    });
+    const result = await articleService.getArticles(req.query);
+    sendResponse(res, 200, "Success", result);
 });
 
 module.exports.getMyArticles = catchAsyncError(async (req, res, next) => {
-    // Add createdBy to the query params so APIFeatures can filter it
-    req.query.createdBy = req.user.id;
-
-    const totalCount = await articleModel.countDocuments({ createdBy: req.user.id });
-    
-    const features = new APIFeatures(articleModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const articles = await features.query;
-
-    if (!articles) {
-        return next(new ErrorHandler(404, "Articles not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        totalCount,
-        limit: req.query.limit * 1 || 10,
-        page: req.query.page * 1 || 1,
-        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
-        articles,
-    });
-});
-
-module.exports.getArticleById = catchAsyncError(async (req, res, next) => {
-    const article = await articleModel.findById(req.params.id);
-    if (!article) {
-        return next(new ErrorHandler(404, "Article not found!"));
-    }
-    res.status(200).json({
-        success: true,
-        article,
-    })
-})
-
-module.exports.dailyArticles = catchAsyncError(async (req, res, next) => {
-    const totalCount = await articleModel.countDocuments();
-    
-    const features = new APIFeatures(articleModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const articles = await features.query;
-
-    if (!articles.length) {
-        return next(new ErrorHandler(404, "Articles not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        totalCount,
-        limit: req.query.limit * 1 || 10,
-        page: req.query.page * 1 || 1,
-        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
-        articles,
-    });
+    const result = await articleService.getArticles(req.query, { createdBy: req.user.id });
+    sendResponse(res, 200, "Success", result);
 });
 
 module.exports.trendingArticles = catchAsyncError(async (req, res, next) => {
-    const totalCount = await articleModel.countDocuments();
-    
-    // Custom sort for trending
     req.query.sort = '-impressions';
-
-    const features = new APIFeatures(articleModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const articles = await features.query;
-
-    if (!articles.length) {
-        return next(new ErrorHandler(404, "Articles not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        totalCount,
-        limit: req.query.limit * 1 || 10,
-        page: req.query.page * 1 || 1,
-        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
-        articles,
-    });
+    const result = await articleService.getArticles(req.query);
+    sendResponse(res, 200, "Success", result);
 });
-
-//This API is only working for stashify blog webApp
-module.exports.searchQueryArticles = catchAsyncError(async (req, res, next) => {
-    let { title } = req.params;
-    if (title === "all") {
-        // Redirect to the getArticles handler
-        return exports.getArticles(req, res, next);
-    }
-    // console.log('get articles conditionally');
-    let article = await articleModel.find({ title: { $regex: `^${title}`, $options: "i" } });
-    if (!article.length) {
-        return next(new ErrorHandler(404, "Article not available!"));
-    }
-    res.status(200).json({
-        success: true,
-        article,
-    })
-})
 
 module.exports.search = catchAsyncError(async (req, res, next) => {
-    let encodedTitle = req.query.name;
-    const articleTitleFromURL = decodeURIComponent(encodedTitle).replace(/-/g, ' ');
-
-    // Prepare a base query that matches title OR category from the search term
+    const searchTerm = decodeURIComponent(req.query.name).replace(/-/g, ' ');
     const baseQuery = {
         $or: [
-            { title: { $regex: articleTitleFromURL, $options: "i" } },
-            { category: { $regex: articleTitleFromURL, $options: "i" } }
+            { title: { $regex: searchTerm, $options: "i" } },
+            { category: { $regex: searchTerm, $options: "i" } }
         ]
     };
-
-    // We can still pass additional filters in req.query (e.g., category=Technology)
-    // and APIFeatures will combine them with our base query.
-    
-    // First, get total count for this search
-    const totalCount = await articleModel.countDocuments(baseQuery);
-
-    const features = new APIFeatures(articleModel.find(baseQuery), req.query)
-        .filter() // This will apply additional filters from req.query (excluding name/sort/page/limit)
-        .sort()
-        .limitFields()
-        .paginate();
-
-    const articles = await features.query;
-    
-    if (!articles.length) {
-        return next(new ErrorHandler(404, "Article not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        totalCount,
-        limit: req.query.limit * 1 || 10,
-        page: req.query.page * 1 || 1,
-        totalPages: Math.ceil(totalCount / (req.query.limit * 1 || 10)),
-        articles,
-    });
+    const result = await articleService.getArticles(req.query, baseQuery);
+    sendResponse(res, 200, "Success", result);
 });
-
-module.exports.filterArticles = catchAsyncError(async (req, res, next) => {
-    const { data } = req.body;
-    // console.log(typeof data === 'string');
-    let article = undefined;
-    if (typeof data === 'string') {
-        article = await articleModel.find({ title: { $regex: `^${data}`, $options: "i" } });
-    } else {
-        const { food, travel, politics, technology } = data;
-        const categoryForFilter = {
-            Food: food,
-            Travel: travel,
-            Politics: politics,
-            Technology: technology,
-        };
-
-        const filteredCategory = {
-            $or: Object.keys(categoryForFilter).filter(key => categoryForFilter[key] !== null).map(key => ({ category: key })),
-        }
-        // console.log(filteredCategory);
-        article = await articleModel.find(filteredCategory);
-    }
-
-    if (!article.length) {
-        return next(new ErrorHandler(404, "Article not available!"));
-    }
-
-    res.status(200).json({
-        success: true,
-        article,
-    });
-
-})
 
 module.exports.updateArticle = catchAsyncError(async (req, res, next) => {
     let article = await articleModel.findById(req.params.id);
@@ -338,50 +85,28 @@ module.exports.updateArticle = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler(403, "You are not authorized to update this article!"));
     }
 
-    let { title, description, category } = JSON.parse(JSON.stringify(req.body));
-    let updateData = { title, description, category };
+    let updateData = { ...req.body };
 
-    let ImageArray = req.files;
-    if (ImageArray && ImageArray.length > 0) {
-        const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-        let url = [];
-        for (let i in ImageArray) {
-            const imageSize = ImageArray[i].size;
-            if (imageSize > MAX_IMAGE_SIZE) {
-                return next(new ErrorHandler(413, "Image size is greater than 5 MB."));
-            }
-        }
-
-        let folderPath = '/WG-ARTICLES-IMAGES/';
-        for (let i in ImageArray) {
-            url[i] = await uploadImagesViaImageKit(ImageArray[i].buffer, ImageArray[i].originalname, folderPath);
-        }
-        updateData.articleImage = url;
+    if (req.files && req.files.length > 0) {
+        updateData.articleImage = await imageService.uploadImages(req.files);
     }
 
     article = await articleModel.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
-    
-    res.status(200).json({
-        success: true,
-        message: "item update successfully",
-        article
-    })
-})
+    sendResponse(res, 200, "Item updated successfully", { article });
+});
 
 module.exports.deleteArticle = catchAsyncError(async (req, res, next) => {
-    let article = await articleModel.findById(req.params.id);
+    await articleService.deleteArticle(req.params.id, req.user.id);
+    sendResponse(res, 200, "Item deleted successfully");
+});
+
+module.exports.getArticleById = catchAsyncError(async (req, res, next) => {
+    const article = await articleModel.findById(req.params.id);
     if (!article) {
-        return next(new ErrorHandler(404, `Article not found!`));
+        return next(new ErrorHandler(404, "Article not found!"));
     }
+    sendResponse(res, 200, "Success", { article });
+});
 
-    if (article.createdBy.toString() !== req.user.id) {
-        return next(new ErrorHandler(403, "You are not authorized to delete this article!"));
-    }
-
-    await article.remove();
-
-    res.status(200).json({
-        success: true,
-        message: "item delete successfully",
-    })
-})
+// Alias for getArticles for dailyArticles
+module.exports.dailyArticles = module.exports.getArticles;
